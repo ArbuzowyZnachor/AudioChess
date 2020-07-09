@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 class MainWindow(QWidget):
     def __init__(self):
         global engine
-        engine = Stockfish("D:\Pobrane\stockfish-11-win\stockfish-11-win\Windows\stockfish_20011801_x64.exe")
+        engine = Stockfish("stockfish_20011801_x64.exe")
         super().__init__()
         
         self.setWindowTitle("PawnsGame")
@@ -31,12 +31,14 @@ class MainWindow(QWidget):
             text = sr.getMove()
             if(bool(text)):
                 self.chessboard.push_uci(text)
-                engine.set_fen_position(self.chessboard.fen())
                 self.update()
+                engine.set_fen_position(self.chessboard.fen())
+                self.chessboard.push_uci(engine.get_best_move()) 
+
    
     @pyqtSlot(QWidget)
     def paintEvent(self, event):
-        self.chessboardSvg = chess.svg.board(self.chessboard,flipped=isFlipped).encode("UTF-8")
+        self.chessboardSvg = chess.svg.board(self.chessboard).encode("UTF-8")
         self.widgetSvg.load(self.chessboardSvg)
         
 

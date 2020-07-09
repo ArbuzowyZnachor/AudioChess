@@ -6,7 +6,7 @@ def getMove():
     text = ""
     print("listining") #debug 
     with sr.Microphone() as source:
-        audio = r.listen(source, 3, 4)
+        audio = r.listen(source, 10, 4)
         try:
             text = r.recognize_google(audio, language="pl")
             text = text.replace(" ","").lower()
