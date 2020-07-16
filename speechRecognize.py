@@ -1,5 +1,10 @@
 import speech_recognition as sr
+from gtts import gTTS as gs
 import re
+import os
+from playsound import playsound
+
+# import os
 
 def getMove():
     r= sr.Recognizer()
@@ -18,3 +23,11 @@ def getMove():
         return text
     else:
         return ""
+
+def sayMove(move):
+    moveText = " ".join(move)
+    language = "ru"
+    speech = gs(text=moveText, lang= language, slow=False)
+    speech.save("text.mp3")
+    playsound("text.mp3", False)
+    os.remove("text.mp3")
