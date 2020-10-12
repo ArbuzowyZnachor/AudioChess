@@ -1,10 +1,7 @@
 import speech_recognition as sr
-from gtts import gTTS as gs
 import re
-import os
-from playsound import playsound
+import pyttsx3 
 
-# import os
 
 def getMove():
     r= sr.Recognizer()
@@ -19,15 +16,17 @@ def getMove():
         except:
             print("Error\n ") #debug
     match = re.match("[a-h][1-8][a-h][1-8]", text, flags=0)
+    if text == "poddajsię":
+        return "surrender"
     if match:
         return text
     else:
         return ""
 
 def sayMove(move):
-    moveText = " ".join(move)
-    language = "ru"
-    speech = gs(text=moveText, lang= language, slow=False)
-    speech.save("text.mp3")
-    playsound("text.mp3", False)
-    os.remove("text.mp3")
+    moveText = ", ".join(move)
+    converter = pyttsx3.init()
+    converter.setProperty('rate', 140) 
+    converter.setProperty('volume', 0.7) 
+    converter.say(moveText)
+    converter.runAndWait() 
