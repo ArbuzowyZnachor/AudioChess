@@ -15,9 +15,9 @@ def getMove():
             print(text+"\n") #debug
         except:
             print("Error\n ") #debug
-    match = re.match("[a-h][1-8][a-h][1-8]", text, flags=0)
     if text == "poddajsię":
         return "surrender"
+    match = re.match("[a-h][1-8][a-h][1-8]", text, flags=0)
     if match:
         return text
     else:
