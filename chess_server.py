@@ -5,7 +5,7 @@ from time import sleep
 import sys
 import queue
 
-DEBUG = 0
+DEBUG = 1
 
 class ClientChannel(Channel):
 
@@ -36,7 +36,7 @@ class ClientChannel(Channel):
         except Exception as ex:
             print("Unable to send draw offer from client to server. Error: {0}".format(ex))
 
-     def Network_drawAccept(self):
+    def Network_drawAccept(self):
         try:
             self._server.send_drawAccept()
         except Exception as ex:
@@ -59,7 +59,9 @@ class ChessServer(Server):
         self.q = []
 
     def _try_make_pair(self):
+        print("no siema")
         if len(self.q)>1:
+            print("wtf")
             try:
                 self.piecesColour = random.getrandbits(1)
                 self.players.append([self.q[self.piecesColour], self.q[int(not self.piecesColour)]])

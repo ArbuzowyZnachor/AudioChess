@@ -8,7 +8,6 @@ from playsound import playsound
 
 from time import sleep
 from threading import Event, Thread
-from chess_client import Client
 
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QSettings
 from PyQt5.QtSvg import QSvgWidget
@@ -17,7 +16,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QSizePolicy, QSp
 class Singleplayer(QWidget):
     end_singleplayer_signal = pyqtSignal()
     threads_stop = False
-    
+    ryba = None
+    stockfish_level = ((1,0.05), (2, 0.1), (3, 0.15), (4,0.2), (6,0.25), (8, 0.3), (10, 0.35), (12, 0.4))
     def __init__(self):
         super().__init__(parent=None)
 
@@ -25,9 +25,19 @@ class Singleplayer(QWidget):
 
         self.setFocusPolicy(Qt.StrongFocus)
         
-        
+        # Player colour and turn
+        if(self.settings.value("piecesColor") == "white"):
+            self.player_colour = 1
+        elif(self.settings.value("piecesColor") == "black"):
+            self.player_colour = 0
+        else:
+            self.player_colour = random.getrandbits(1)
 
-       
+        self.player_turn = bool(self.player_colour)
+
+        # Enigne initializing from exe file
+        global ryba
+        ryba = chess.engine.SimpleEngine.popen_uci("stockfish_20011801_x64.exe")
 
         # Setting layout
         self.gridLayout_main = QGridLayout(self)

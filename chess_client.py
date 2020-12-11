@@ -37,7 +37,7 @@ class Client(ConnectionListener):
     def Network_drawOfferFromServer(self):
         print("Przeciwnik proponuje remis")
 
-    def Network_drawAcceptFromServer(self)
+    def Network_drawAcceptFromServer(self):
         print("Przeciwnik zaakceptował remis")
 
     def Network_resignFromServer(self):
@@ -55,7 +55,7 @@ class Client(ConnectionListener):
         connection.Close()
 
     def Network_disconnected(self, data):
-        print('Server disconnected')
+        print('Utracono połączenie z serwerem')
         exit()
 
 if __name__ == '__main__':
