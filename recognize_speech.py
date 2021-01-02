@@ -5,6 +5,7 @@ import sys
 from playsound import playsound
 
 dict_change = {
+    "-": "",
     "król":"K",
     "hetman":"Q",
     "goniec":"B",
@@ -17,7 +18,21 @@ dict_change = {
     "koniec": "B",
     "koczek":"N",
     "lew": "f",
-    "-": ""
+}
+
+dict_pc = {
+    'd': "de ", 
+    'f': "ef ", 
+    # 'g': "ge ", 
+    'h': "ha ", 
+    "K": "król ",
+    "Q": "hetman ",
+    "B": "goniec ",
+    "N": "skoczek ",
+    "R": "wieża ",
+    "O-O-O": "długaroszada " ,
+    "O-O": "krótkaroszada ",
+    "x": "bije ",
 }
 
 dict_int = {
@@ -192,6 +207,7 @@ def get_turn():
             data["action"] = "move"
             data["move"] = text
         else:
+            print(text)
             data["action"] = "error"
             data["errorMessage"] = "Niepoprawna akcja"
     else:
@@ -228,3 +244,7 @@ def replacer(text, dictionary):
     for x in dictionary:
         text = text.replace(x, dictionary[x])
     return text
+
+def sayPcMove(text):
+    text = replacer(text, dict_pc)
+    sayWords(text)

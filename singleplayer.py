@@ -116,11 +116,11 @@ class Singleplayer(QWidget):
 
     # Function to get player move
     def player_move(self):
-        # TODO Space for sound effect
         try:
             data = rs.get_turn()
             if(data):
                 if(data["action"]=="surrender"):
+                    rs.sayWords("Poddano się")
                     self.end_singleplayer_signal.emit()
                 elif(data["action"]=="checkField"):
                     piece = self.chessboard.piece_at(chess.SQUARE_NAMES.index(data["field"]))
@@ -141,6 +141,7 @@ class Singleplayer(QWidget):
                         print("Errror: ", ex)
                         rs.sayWords("Nieprawidłowy ruch")
                 elif(data["action"] == "error"):
+                    playsound("sound/bad.mp3")
                     print(data["errorMessage"])
         except Exception as ex:
             print("Player move failed. Error: {0}".format(ex))
@@ -157,22 +158,27 @@ class Singleplayer(QWidget):
                 result = ryba.play(self.chessboard, chess.engine.Limit( depth = self.stockfish_level[self.settings.value("stockfishLevel") - 1][0], 
                 time = self.stockfish_level[self.settings.value("stockfishLevel") - 1][1]))
                 if result:
-                    text = result.move.uci()
+                    # text = result.move.uci() # TODO
+                    text = self.chessboard.san(result.move)
+                    print(text)
                     if text:
-                        moveText = ", ".join(text)
-                        rs.sayWords(moveText)
+                        rs.sayPcMove(text)
                         self.sound_move(result.move)
                         self.chessboard.push(result.move)
                         self.event_print_board.set()
+                        if(self.chessboard.is_checkmate()):
+                            rs.sayWords("Mat")
+                        elif(self.chessboard.is_check()):
+                            rs.sayWords("Szach")
                 if(self.chessboard.is_variant_draw()):
                     rs.sayWords("Remis")
                     self.end_singleplayer_signal.emit()
                 if(self.chessboard.is_game_over()):
                     rs.sayWords("Przeciwnik wygrywa")
-                    self.endGameSignal.emit()
+                    self.end_singleplayer_signal.emit()
             except Exception as ex:
                 print("Engine move failed. Error: ", ex)
-                self.endGameSignal.emit()
+                self.end_singleplayer_signal.emit()
             else:
                 self.player_turn = True
                 self.event_engine_move.clear()

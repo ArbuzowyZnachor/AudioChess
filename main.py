@@ -7,6 +7,7 @@ from threading import Event, Thread
 
 from uifiles.mainUI import Ui_MainWindow
 from singleplayer import Singleplayer
+from multiplayer import Multiplayer
 from game_menu import GameMenu
 from settings_menu import SettingsMenu
 
@@ -15,7 +16,7 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
         super(Ui, self).__init__(parent)
         # Get application settings
         self.settings = QSettings('MyQtApp', 'App1')
-        # self.settings.clear() # DEBUG
+        self.settings.clear() # DEBUG
         self.settings_init()
 
         # Set pages info sound thread and event
@@ -67,7 +68,9 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stackedWidget.setCurrentIndex(1)
         self.game_menu.close_game_menu_signal.connect(lambda : self.close_game_menu())
         self.game_menu.start_singleplayer_signal.connect(lambda: self.start_singleplayer())
+        self.game_menu.start_multiplayer_signal.connect(lambda: self.start_multiplayer())
         self.game_menu.setFocus()
+        self.game_menu_sound()
 
     # Return from game menu
     def close_game_menu(self):
@@ -92,6 +95,25 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stackedWidget.widget(1).setFocus()
         self.singleplayer.deleteThreads()
         self.singleplayer.deleteLater()
+        self.game_menu_sound()
+
+    # Starts game with player
+    def start_multiplayer(self):
+        self.multiplayer = Multiplayer()
+        self.stackedWidget.addWidget(self.multiplayer)
+        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.widget(1).clearFocus()
+        self.multiplayer.end_multiplayer_signal.connect(lambda : self.end_multiplayer())
+        self.multiplayer.setFocus()
+
+    # Closes game with player
+    def end_multiplayer(self):
+        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.widget(2).clearFocus
+        self.stackedWidget.removeWidget(self.stackedWidget.widget(2))
+        self.stackedWidget.widget(1).setFocus()
+        self.multiplayer.deleteThreads()
+        self.multiplayer.deleteLater()
 
     def open_settings_menu(self):
         self.menuPage.clearFocus()
@@ -100,6 +122,7 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stackedWidget.setCurrentIndex(1)
         self.settings_menu.setFocus()
         self.settings_menu.close_settings_menu_signal.connect(lambda: self.close_settings_menu())
+        self.settings_menu_sound()
 
     def close_settings_menu(self):
         self.settings_menu.clearFocus()
@@ -164,12 +187,6 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.event_page_sound.set()
 
     @pyqtSlot(QWidget)
-    def closeEvent(self, event):
-        self.settings.setValue
-        if(self.singleplayer):
-            self.singleplayer.deleteThreads()
-
-    @pyqtSlot(QWidget)
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Space:
             self.main_menu_command()
@@ -177,6 +194,14 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
     @pyqtSlot(QWidget)
     def showEvent(self, event):
         self.main_menu_sound()
+
+    @pyqtSlot(QWidget)
+    def closeEvent(self, event):
+        print("nara")
+        if(self.singleplayer):
+            self.singleplayer.deleteThreads()
+        if(self.multiplayer):
+            self.multiplayer.send_resign()
 
 if __name__ == "__main__":
     import sys

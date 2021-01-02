@@ -5,8 +5,6 @@ from time import sleep
 import sys
 import queue
 
-DEBUG = 1
-
 class ClientChannel(Channel):
 
     def __init__(self, *args, **kwargs):
@@ -24,26 +22,13 @@ class ClientChannel(Channel):
         except Exception as ex:
             print("Unable to send move from client to server. Error: {0}".format(ex))
 
-    def Network_draw(self):
+    def Network_resign(self, data):
         try:
-            self._server.send_draw()
+            print("przyjęto poddanie się")
+            self._server.send_resign({"game":self.gameNumber, "colour":int( not self.gameColour)})
         except Exception as ex:
-            print("Unable to send draw from client to server. Error: {0}".format(ex))
+            print("Unable to send move from client to server. Error: {0}".format(ex))
 
-    def Network_drawOffer(self):
-        try:
-            self._server.send_drawOffer()
-        except Exception as ex:
-            print("Unable to send draw offer from client to server. Error: {0}".format(ex))
-
-    def Network_drawAccept(self):
-        try:
-            self._server.send_drawAccept()
-        except Exception as ex:
-            print("Unable to send draw accept from client to server. Error: {0}".format(ex))
-    
-    # def Close(self): #TODO
-    #     self._server.del_player(self)
 
 class ChessServer(Server):
 
@@ -59,9 +44,7 @@ class ChessServer(Server):
         self.q = []
 
     def _try_make_pair(self):
-        print("no siema")
         if len(self.q)>1:
-            print("wtf")
             try:
                 self.piecesColour = random.getrandbits(1)
                 self.players.append([self.q[self.piecesColour], self.q[int(not self.piecesColour)]])
@@ -74,10 +57,9 @@ class ChessServer(Server):
 
             else:
                 try:
-                    if(DEBUG):
-                        print("Stworzono parę {0} oraz {1}".format(self.players[-1][0].addr, self.players[-1][1].addr))
-                        self.players[-1][0].Send({"action": "setGame", "gameNumber": self.gameCounter, "colour": "białe"})
-                        self.players[-1][1].Send({"action": "setGame", "gameNumber": self.gameCounter, "colour": "czarne"})
+                    # print("Stworzono parę {0} oraz {1}".format(self.players[-1][0].addr, self.players[-1][1].addr))
+                    self.players[-1][0].Send({"action": "setGame", "gameNumber": self.gameCounter, "colour": "white"})
+                    self.players[-1][1].Send({"action": "setGame", "gameNumber": self.gameCounter, "colour": "black"})
 
                     self.players[-1][0].set_game(self.gameCounter, 0)
                     self.players[-1][1].set_game(self.gameCounter, 1)
@@ -96,25 +78,13 @@ class ChessServer(Server):
             self.players[data["game"]][data["colour"]].Send({"action":"moveFromServer", "move":data["move"]})
         except Exception as ex:
             print("Unable to send move from server to client. Error: ", ex)
-    
-    def send_draw(self, data):
-        try:
-            self.players[data["game"]][data["colour"]].Send({"action":"drawFromServer"})
-        except Exception as ex:
-            print("Unable to send draw from server to client. Error: ", ex)
-
-    def send_drawOffer(self, data):
-        try:
-            self.players[data["game"]][data["colour"]].Send({"action":"drawOfferFromServer"})
-        except Exception as ex:
-            print("Unable to send draw from server to client. Error: ", ex)
 
     def send_resign(self, data):
         try:
+            print("Nadano poddanie się")
             self.players[data["game"]][data["colour"]].Send({"action":"resignFromServer"})
         except Exception as ex:
             print("Unable to send resign from server to client. Error: ", ex)
-
 
     def Connected(self, channel, addr):
         print ('new connection:', channel, addr)
@@ -125,6 +95,7 @@ class ChessServer(Server):
         while True:
             self.Pump()
             sleep(0.0001)
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
