@@ -29,6 +29,12 @@ class ClientChannel(Channel):
         except Exception as ex:
             print("Unable to send move from client to server. Error: {0}".format(ex))
 
+    def Network_disconnect(self, data):
+        try:
+            self._server.remove_client(self)
+        except Exception as ex:
+            print("Unable to send dissconnect from client to server. Error: {0}".format(ex))      
+
 
 class ChessServer(Server):
 
@@ -42,14 +48,11 @@ class ChessServer(Server):
         print("Server launched")
         print("Ctrl-C to exit")
         self.q = []
-
     def _try_make_pair(self):
         if len(self.q)>1:
             try:
                 self.piecesColour = random.getrandbits(1)
                 self.players.append([self.q[self.piecesColour], self.q[int(not self.piecesColour)]])
-                print(self.players)
-                del self.q[0:2]
 
             except Exception as e:
                 print("_try_make_pair function error! Reason:{0}".format(e))
@@ -57,7 +60,6 @@ class ChessServer(Server):
 
             else:
                 try:
-                    # print("Stworzono parę {0} oraz {1}".format(self.players[-1][0].addr, self.players[-1][1].addr))
                     self.players[-1][0].Send({"action": "setGame", "gameNumber": self.gameCounter, "colour": "white"})
                     self.players[-1][1].Send({"action": "setGame", "gameNumber": self.gameCounter, "colour": "black"})
 
@@ -68,10 +70,8 @@ class ChessServer(Server):
                 except Exception as e:
                     print("_try_make_pair printing function error! Reason:{0}".format(e))
                     pass    
-
-    # def del_player(self, player): #TODO
-    #     print("Deleting Player" + str(player.addr))
-    #     del self.players[player]
+                else:
+                    del self.q[0:2]
 
     def send_move(self, data):
         try:
@@ -85,6 +85,13 @@ class ChessServer(Server):
             self.players[data["game"]][data["colour"]].Send({"action":"resignFromServer"})
         except Exception as ex:
             print("Unable to send resign from server to client. Error: ", ex)
+
+    def remove_client(self, channel):
+        try:
+            self.q.remove(channel)
+            print("client removed")
+        except Exception as ex:
+            print("Unable to remove channel from server list. Error: ", ex)
 
     def Connected(self, channel, addr):
         print ('new connection:', channel, addr)
@@ -100,7 +107,7 @@ class ChessServer(Server):
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage:", sys.argv[0], "host:port")
-        print("e.g.", sys.argv[0], "localhost:31425")
+        print("e.g.", sys.argv[0], "localhost:5554")
     else:
         host, port = sys.argv[1].split(":")
         s = ChessServer(localaddr=(host, int(port)))

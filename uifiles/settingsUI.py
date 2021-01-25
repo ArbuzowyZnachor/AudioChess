@@ -14,38 +14,145 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(1248, 774)
+        Form.resize(1703, 967)
+        Form.setStyleSheet("#Form{\n"
+"border-image: url(:/Images/background.JPG) 0 0 0 0 stretch stretch;\n"
+"background-position: center;\n"
+"background-repeat: none;\n"
+"}\n"
+".QPushButton:hover{ \n"
+"border-color: red;\n"
+"}\n"
+".QPushButton{\n"
+"padding:15px;\n"
+"background-color: white;\n"
+" border-style: solid;\n"
+" border-width:3px;\n"
+"border-color: black;\n"
+" border-radius:50px;\n"
+" min-width:100px;\n"
+" min-height:100px;\n"
+"font-size:60pt;\n"
+"}\n"
+".QLabel{\n"
+"font-size:36pt\n"
+"}\n"
+"\n"
+".QRadioButton{\n"
+"font-size:30pt;\n"
+"}\n"
+"\n"
+".QRadioButton::indicator::unchecked{ border: 1px solid darkgray; border-radius: 1px; background-color: white; width: 35px; height: 35px; margin-left: 5px;}\n"
+"\n"
+".QRadioButton::indicator::checked{ border: 1px solid darkgray; border-radius: 1px; background-color: black; width: 35px; height: 35px; margin-left: 5px;}\n"
+"\n"
+"\n"
+"QSlider::groove:horizontal { \n"
+"    background-color: black;\n"
+"    border: 0px solid #424242; \n"
+"    height: 10px; \n"
+"    border-radius: 5px;\n"
+"}\n"
+"\n"
+"QSlider::handle:horizontal { \n"
+"    background-color: red; \n"
+"    border: 2px solid red; \n"
+"    width:16px; \n"
+"    line-height: 20px; \n"
+"    margin-top: -5px; \n"
+"    margin-bottom: -5px; \n"
+"    border-radius: 9px; \n"
+"}")
         self.gridLayout = QtWidgets.QGridLayout(Form)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_settings = QtWidgets.QWidget(Form)
+        self.horizontalLayout_settings.setStyleSheet(".QWidget{\n"
+"border-image: url(:/Images/background.JPG) 0 0 0 0 stretch stretch;\n"
+"background-position: center;\n"
+"background-repeat: none;\n"
+"}\n"
+".QPushButton:hover{ \n"
+"border-color: red;\n"
+"}\n"
+".QPushButton{\n"
+"padding:15px;\n"
+"background-color: white;\n"
+" border-style: solid;\n"
+" border-width:3px;\n"
+"border-color: black;\n"
+" border-radius:50px;\n"
+" min-width:100px;\n"
+" min-height:100px;\n"
+"font-size:60pt;\n"
+"}\n"
+".QLabel{\n"
+"font-size:36pt\n"
+"}\n"
+"\n"
+".QRadioButton{\n"
+"font-size:30pt;\n"
+"}\n"
+"\n"
+".QRadioButton::indicator::unchecked{ border: 1px solid darkgray; border-radius: 1px; background-color: white; width: 35px; height: 35px; margin-left: 5px;}\n"
+"\n"
+".QRadioButton::indicator::checked{ border: 1px solid darkgray; border-radius: 1px; background-color: black; width: 35px; height: 35px; margin-left: 5px;}\n"
+"\n"
+"\n"
+"QSlider::groove:horizontal { \n"
+"    background-color: black;\n"
+"    border: 0px solid #424242; \n"
+"    height: 10px; \n"
+"    border-radius: 5px;\n"
+"}\n"
+"\n"
+"QSlider::handle:horizontal { \n"
+"    background-color: red; \n"
+"    border: 2px solid red; \n"
+"    width:16px; \n"
+"    line-height: 20px; \n"
+"    margin-top: -5px; \n"
+"    margin-bottom: -5px; \n"
+"    border-radius: 9px; \n"
+"}")
+        self.horizontalLayout_settings.setObjectName("horizontalLayout_settings")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayout_settings)
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        self.verticalLayout_buttons = QtWidgets.QVBoxLayout()
+        self.frame = QtWidgets.QFrame(self.horizontalLayout_settings)
+        self.frame.setStyleSheet("background-color:white;")
+        self.frame.setObjectName("frame")
+        self.verticalLayout_buttons = QtWidgets.QVBoxLayout(self.frame)
         self.verticalLayout_buttons.setContentsMargins(100, -1, 100, -1)
         self.verticalLayout_buttons.setObjectName("verticalLayout_buttons")
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.verticalLayout_buttons.addItem(spacerItem1)
         self.horizontalLayout_1 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_1.setSpacing(0)
         self.horizontalLayout_1.setObjectName("horizontalLayout_1")
-        self.label = QtWidgets.QLabel(Form)
+        self.label = QtWidgets.QLabel(self.frame)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(36)
         self.label.setFont(font)
         self.label.setTextFormat(QtCore.Qt.AutoText)
         self.label.setObjectName("label")
         self.horizontalLayout_1.addWidget(self.label)
-        self.lcdNumber = QtWidgets.QLCDNumber(Form)
+        self.lcdNumber = QtWidgets.QLCDNumber(self.frame)
+        self.lcdNumber.setEnabled(True)
+        self.lcdNumber.setMinimumSize(QtCore.QSize(32, 65))
         self.lcdNumber.setMaximumSize(QtCore.QSize(150, 16777215))
         self.lcdNumber.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.lcdNumber.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.lcdNumber.setSmallDecimalPoint(False)
+        self.lcdNumber.setDigitCount(1)
         self.lcdNumber.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         self.lcdNumber.setProperty("intValue", 4)
         self.lcdNumber.setObjectName("lcdNumber")
         self.horizontalLayout_1.addWidget(self.lcdNumber)
         self.verticalLayout_buttons.addLayout(self.horizontalLayout_1)
-        self.horizontalSlider_stockfish_lvl = QtWidgets.QSlider(Form)
+        self.horizontalSlider_stockfish_lvl = QtWidgets.QSlider(self.frame)
         self.horizontalSlider_stockfish_lvl.setMinimum(1)
         self.horizontalSlider_stockfish_lvl.setMaximum(8)
         self.horizontalSlider_stockfish_lvl.setProperty("value", 4)
@@ -54,33 +161,35 @@ class Ui_Form(object):
         self.verticalLayout_buttons.addWidget(self.horizontalSlider_stockfish_lvl)
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.verticalLayout_buttons.addItem(spacerItem2)
-        self.label_2 = QtWidgets.QLabel(Form)
+        self.label_2 = QtWidgets.QLabel(self.frame)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(36)
         self.label_2.setFont(font)
         self.label_2.setTextFormat(QtCore.Qt.AutoText)
         self.label_2.setObjectName("label_2")
         self.verticalLayout_buttons.addWidget(self.label_2)
-        self.horizontalGroupBox = QtWidgets.QGroupBox(Form)
+        self.horizontalGroupBox = QtWidgets.QGroupBox(self.frame)
         self.horizontalGroupBox.setObjectName("horizontalGroupBox")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.horizontalGroupBox)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.radioButton_random = QtWidgets.QRadioButton(self.horizontalGroupBox)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         self.radioButton_random.setFont(font)
+        self.radioButton_random.setStyleSheet("")
+        self.radioButton_random.setIconSize(QtCore.QSize(128, 128))
         self.radioButton_random.setChecked(True)
         self.radioButton_random.setObjectName("radioButton_random")
         self.horizontalLayout_2.addWidget(self.radioButton_random)
         self.radioButton_white = QtWidgets.QRadioButton(self.horizontalGroupBox)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         self.radioButton_white.setFont(font)
         self.radioButton_white.setObjectName("radioButton_white")
         self.horizontalLayout_2.addWidget(self.radioButton_white)
         self.radioButton_black = QtWidgets.QRadioButton(self.horizontalGroupBox)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         self.radioButton_black.setFont(font)
         self.radioButton_black.setIconSize(QtCore.QSize(40, 40))
         self.radioButton_black.setObjectName("radioButton_black")
@@ -88,54 +197,54 @@ class Ui_Form(object):
         self.verticalLayout_buttons.addWidget(self.horizontalGroupBox)
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.verticalLayout_buttons.addItem(spacerItem3)
-        self.label_3 = QtWidgets.QLabel(Form)
+        self.label_3 = QtWidgets.QLabel(self.frame)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(36)
         self.label_3.setFont(font)
         self.label_3.setTextFormat(QtCore.Qt.AutoText)
         self.label_3.setObjectName("label_3")
         self.verticalLayout_buttons.addWidget(self.label_3)
-        self.horizontalGroupBox_2 = QtWidgets.QGroupBox(Form)
+        self.horizontalGroupBox_2 = QtWidgets.QGroupBox(self.frame)
         self.horizontalGroupBox_2.setObjectName("horizontalGroupBox_2")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.horizontalGroupBox_2)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.radioButton_ping_on = QtWidgets.QRadioButton(self.horizontalGroupBox_2)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         self.radioButton_ping_on.setFont(font)
         self.radioButton_ping_on.setChecked(True)
         self.radioButton_ping_on.setObjectName("radioButton_ping_on")
         self.horizontalLayout_3.addWidget(self.radioButton_ping_on)
         self.radioButton_ping_off = QtWidgets.QRadioButton(self.horizontalGroupBox_2)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         self.radioButton_ping_off.setFont(font)
         self.radioButton_ping_off.setObjectName("radioButton_ping_off")
         self.horizontalLayout_3.addWidget(self.radioButton_ping_off)
         self.verticalLayout_buttons.addWidget(self.horizontalGroupBox_2)
         spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.verticalLayout_buttons.addItem(spacerItem4)
-        self.label_4 = QtWidgets.QLabel(Form)
+        self.label_4 = QtWidgets.QLabel(self.frame)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(36)
         self.label_4.setFont(font)
         self.label_4.setTextFormat(QtCore.Qt.AutoText)
         self.label_4.setObjectName("label_4")
         self.verticalLayout_buttons.addWidget(self.label_4)
-        self.horizontalGroupBox_3 = QtWidgets.QGroupBox(Form)
+        self.horizontalGroupBox_3 = QtWidgets.QGroupBox(self.frame)
         self.horizontalGroupBox_3.setObjectName("horizontalGroupBox_3")
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.horizontalGroupBox_3)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.radioButton_info_on = QtWidgets.QRadioButton(self.horizontalGroupBox_3)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         self.radioButton_info_on.setFont(font)
         self.radioButton_info_on.setChecked(True)
         self.radioButton_info_on.setObjectName("radioButton_info_on")
         self.horizontalLayout_4.addWidget(self.radioButton_info_on)
         self.radioButton_info_off = QtWidgets.QRadioButton(self.horizontalGroupBox_3)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         self.radioButton_info_off.setFont(font)
         self.radioButton_info_off.setObjectName("radioButton_info_off")
         self.horizontalLayout_4.addWidget(self.radioButton_info_off)
@@ -144,25 +253,30 @@ class Ui_Form(object):
         self.verticalLayout_buttons.addItem(spacerItem5)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.pushButton_return = QtWidgets.QPushButton(Form)
+        self.pushButton_return = QtWidgets.QPushButton(self.frame)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(60)
         self.pushButton_return.setFont(font)
         self.pushButton_return.setObjectName("pushButton_return")
         self.horizontalLayout_5.addWidget(self.pushButton_return)
-        self.pushButton_save = QtWidgets.QPushButton(Form)
+        self.pushButton_save = QtWidgets.QPushButton(self.frame)
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setPointSize(60)
         self.pushButton_save.setFont(font)
         self.pushButton_save.setObjectName("pushButton_save")
         self.horizontalLayout_5.addWidget(self.pushButton_save)
         self.verticalLayout_buttons.addLayout(self.horizontalLayout_5)
         spacerItem6 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.verticalLayout_buttons.addItem(spacerItem6)
-        self.horizontalLayout.addLayout(self.verticalLayout_buttons)
+        self.horizontalLayout.addWidget(self.frame)
+        self.frame1 = QtWidgets.QFrame(self.horizontalLayout_settings)
+        self.frame1.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame1.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame1.setObjectName("frame1")
+        self.horizontalLayout.addWidget(self.frame1)
         spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem7)
-        self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.horizontalLayout_settings, 0, 0, 1, 1)
 
         self.retranslateUi(Form)
         self.horizontalSlider_stockfish_lvl.valueChanged['int'].connect(self.lcdNumber.display)
@@ -177,10 +291,11 @@ class Ui_Form(object):
         self.radioButton_white.setText(_translate("Form", "Białe"))
         self.radioButton_black.setText(_translate("Form", "Czarne"))
         self.label_3.setText(_translate("Form", "Dzwięk aktywnego mikrofonu:"))
-        self.radioButton_ping_on.setText(_translate("Form", "ON"))
-        self.radioButton_ping_off.setText(_translate("Form", "OFF"))
+        self.radioButton_ping_on.setText(_translate("Form", "Włącz"))
+        self.radioButton_ping_off.setText(_translate("Form", "Wyłącz"))
         self.label_4.setText(_translate("Form", "Komunikate głosowe w oknach menu:"))
-        self.radioButton_info_on.setText(_translate("Form", "ON"))
-        self.radioButton_info_off.setText(_translate("Form", "OFF"))
+        self.radioButton_info_on.setText(_translate("Form", "Włącz"))
+        self.radioButton_info_off.setText(_translate("Form", "Wyłącz"))
         self.pushButton_return.setText(_translate("Form", "Powrót"))
         self.pushButton_save.setText(_translate("Form", "Zapisz"))
+from . import Images_rc

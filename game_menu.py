@@ -2,10 +2,10 @@ from PyQt5 import  QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QAction
 
-from uifiles.gameUI import Ui_Form
-import recognize_speech as rs
+from uifiles.gameUI import Ui_gameMenu
+import speech
 
-class GameMenu(QWidget, Ui_Form):
+class GameMenu(QWidget, Ui_gameMenu):
     close_game_menu_signal = pyqtSignal()
     start_singleplayer_signal = pyqtSignal()
     start_multiplayer_signal = pyqtSignal()
@@ -19,7 +19,7 @@ class GameMenu(QWidget, Ui_Form):
 
     def game_menu_action(self):
         try:
-            data = rs.get_game_menu_action()
+            data = speech.get_game_menu_action()
             if(data):
                 if(data["action"] == "single"):
                     self.start_singleplayer_signal.emit()
@@ -28,13 +28,13 @@ class GameMenu(QWidget, Ui_Form):
                 elif(data["action"] == "exit"):
                     self.close_game_menu_signal.emit()
                 elif(data["action"] == "help"):
-                    rs.sayWords(data["helpMessage"])
+                    speech.sayWords(data["helpMessage"])
                 elif(data["action"] == "error"):
-                    rs.sayWords(data["errorMessage"])
+                    speech.sayWords(data["errorMessage"])
                 elif(data["action"] == "none"):
                     pass
                 else:
-                    rs.sayWords("Brak odpowiedniej opcji")
+                    speech.sayWords("Brak odpowiedniej opcji")
         except Exception as ex:
             print("Error:", ex)
 

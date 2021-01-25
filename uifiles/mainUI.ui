@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1038</width>
-    <height>834</height>
+    <width>1425</width>
+    <height>914</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -18,6 +18,9 @@
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <property name="toolButtonStyle">
    <enum>Qt::ToolButtonIconOnly</enum>
@@ -32,7 +35,38 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="styleSheet">
+    <string notr="true">
+.QPushButton:hover{ 
+border-color: red;
+}
+.QPushButton{
+background-color: white;
+ border-style: solid;
+ border-width:3px;
+border-color: black;
+ border-radius:50px;
+ min-width:100px;
+ min-height:100px;
+font-size:60pt;
+}</string>
+   </property>
    <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <property name="spacing">
+     <number>0</number>
+    </property>
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="sizePolicy">
@@ -47,6 +81,9 @@
       <property name="layoutDirection">
        <enum>Qt::LeftToRight</enum>
       </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
       <property name="frameShape">
        <enum>QFrame::NoFrame</enum>
       </property>
@@ -59,6 +96,13 @@
        </property>
        <property name="layoutDirection">
         <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">#menuPage{
+border-image: url(:/Images/background.JPG) 0 0 0 0 stretch stretch;
+background-position: center;
+background-repeat: none;
+}</string>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
@@ -95,8 +139,19 @@
               <property name="layoutDirection">
                <enum>Qt::LeftToRight</enum>
               </property>
+              <property name="styleSheet">
+               <string notr="true">text-shadow: 5px 5px 0px #eb452b, 
+                  10px 10px 0px #efa032, 
+                  15px 15px 0px #46b59b, 
+                  20px 20px 0px #017e7f, 
+                  25px 25px 0px #052939, 
+                  30px 30px 0px #c11a2b, 
+                  35px 35px 0px #c11a2b, 
+                  40px 40px 0px #c11a2b, 
+                  45px 45px 0px #c11a2b;</string>
+              </property>
               <property name="text">
-               <string>Pawns Game</string>
+               <string>Audio szachy</string>
               </property>
              </widget>
             </item>
@@ -161,14 +216,17 @@
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>400</width>
-                  <height>50</height>
+                  <width>106</width>
+                  <height>106</height>
                  </size>
                 </property>
                 <property name="font">
                  <font>
-                  <pointsize>28</pointsize>
+                  <pointsize>60</pointsize>
                  </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true"/>
                 </property>
                 <property name="text">
                  <string>Graj</string>
@@ -201,14 +259,17 @@
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>400</width>
-                  <height>50</height>
+                  <width>106</width>
+                  <height>106</height>
                  </size>
                 </property>
                 <property name="font">
                  <font>
-                  <pointsize>28</pointsize>
+                  <pointsize>60</pointsize>
                  </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true"/>
                 </property>
                 <property name="text">
                  <string>Ustawienia</string>
@@ -241,13 +302,13 @@
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>400</width>
-                  <height>50</height>
+                  <width>106</width>
+                  <height>106</height>
                  </size>
                 </property>
                 <property name="font">
                  <font>
-                  <pointsize>28</pointsize>
+                  <pointsize>60</pointsize>
                  </font>
                 </property>
                 <property name="text">
@@ -300,6 +361,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="Images.qrc"/>
+ </resources>
  <connections/>
 </ui>

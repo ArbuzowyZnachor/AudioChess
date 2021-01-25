@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QAction
 from threading import Event, Thread
 
 from uifiles.settingsUI import Ui_Form
-import recognize_speech as rs
+import speech
 
 class SettingsMenu(QWidget, Ui_Form):
     close_settings_menu_signal = pyqtSignal()
@@ -71,57 +71,57 @@ class SettingsMenu(QWidget, Ui_Form):
 
     def get_settings_command(self):
         try:
-            data = rs.get_settings_action()
+            data = speech.get_settings_action()
             if(data["action"] == "engine"):
                 self.horizontalSlider_stockfish_lvl.setValue(int(data["level"]))
                 text = "Ustawiono poziom na " + str(data["level"])
                 self.horizontalSlider_stockfish_lvl.update()
-                rs.sayWords(text)
+                speech.sayWords(text)
 
             elif(data["action"] == "piecesColor"):
                 if data["piecesColor"] == "white":
                     self.radioButton_white.setChecked(True)
-                    rs.sayWords("Ustawiono kolor figur na biały")
+                    speech.sayWords("Ustawiono kolor figur na biały")
                 elif data["piecesColor"] == "black":
                     self.radioButton_black.setChecked(True)
-                    rs.sayWords("Ustawiono kolor figur na czarny")
+                    speech.sayWords("Ustawiono kolor figur na czarny")
                 elif data["piecesColor"] == "random":
                     self.radioButton_random.setChecked(True)
-                    rs.sayWords("Ustawiono kolor figur na losowy")
+                    speech.sayWords("Ustawiono kolor figur na losowy")
                 
             elif(data["action"] == "activeMicSound"):
                 if data["activeMicSound"] == "on":
                     self.radioButton_ping_on.setChecked(True)
-                    rs.sayWords("Ustawiono dźwięk aktywnego mikrofonu na włączony")
+                    speech.sayWords("Ustawiono dźwięk aktywnego mikrofonu na włączony")
                 elif data["activeMicSound"] == "off":
                     self.radioButton_ping_off.setChecked(True)
-                    rs.sayWords("Ustawiono dźwięk aktywnego mikrofonu na wyłączony")
+                    speech.sayWords("Ustawiono dźwięk aktywnego mikrofonu na wyłączony")
             
             elif(data["action"] == "pageSound"):
                 if data["pageSound"] == "on":
                     self.radioButton_info_on.setChecked(True)
-                    rs.sayWords("Ustawiono komunikaty aktywnego okna na włączone")
+                    speech.sayWords("Ustawiono komunikaty aktywnego okna na włączone")
                 elif data["pageSound"] == "off":
                     self.radioButton_info_off.setChecked(True)
-                    rs.sayWords("Ustawiono komunikaty aktywnego okna na wyłączone")
+                    speech.sayWords("Ustawiono komunikaty aktywnego okna na wyłączone")
 
             elif(data["action"] == "help"):
-                rs.sayWords(self.helpMessage)
+                speech.sayWords(self.helpMessage)
 
             elif(data["action"] == "return"):
                 self.close_settings_menu_signal.emit()
 
             elif(data["action"] == "save"):
                 self.save_settings()
-                rs.sayWords("Ustwienia zapisane")
+                speech.sayWords("Ustwienia zapisane")
 
             elif(data["action"] == "error"):
-                rs.sayWords(data["errorMessage"])
+                speech.sayWords(data["errorMessage"])
 
             elif(data["action"] == "none"):
                 pass
             else:
-                rs.sayWords("Brak odpowiedniej opcji")                                     
+                speech.sayWords("Brak odpowiedniej opcji")                                     
         except Exception as ex:
             print("Error:", ex)
     

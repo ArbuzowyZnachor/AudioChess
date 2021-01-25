@@ -1,8 +1,8 @@
+from re import S
 import chess
 import chess.engine
 import chess.svg
-import sys
-import recognize_speech as rs
+import speech
 import random
 from playsound import playsound
 
@@ -11,20 +11,24 @@ from threading import Event, Thread
 
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QSettings
 from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QSizePolicy, QSpacerItem, QGridLayout
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QHBoxLayout, QSizePolicy, QGridLayout, QLabel
+
+class ChessboardWidget(QSvgWidget):
+    def showEvent(self, event):
+        self.setFixedWidth(self.height())
+    def resizeEvent(self, event):
+        self.setFixedWidth(self.height())
 
 class Singleplayer(QWidget):
     end_singleplayer_signal = pyqtSignal()
     threads_stop = False
-    ryba = None
+    engine = None
     stockfish_level = ((1,0.05), (2, 0.1), (3, 0.15), (4,0.2), (6,0.25), (8, 0.3), (10, 0.35), (12, 0.4))
     def __init__(self):
         super().__init__(parent=None)
-
         self.settings = QSettings('MyQtApp', 'App1')
-
         self.setFocusPolicy(Qt.StrongFocus)
-        
+
         # Player colour and turn
         if(self.settings.value("piecesColor") == "white"):
             self.player_colour = 1
@@ -32,21 +36,32 @@ class Singleplayer(QWidget):
             self.player_colour = 0
         else:
             self.player_colour = random.getrandbits(1)
-
         self.player_turn = bool(self.player_colour)
 
         # Enigne initializing from exe file
-        global ryba
-        ryba = chess.engine.SimpleEngine.popen_uci("stockfish_20011801_x64.exe")
-
+        global engine
+        try:
+            engine = chess.engine.SimpleEngine.popen_uci("stockfish_20011801_x64.exe")
+        except Exception as ex:
+            speech.sayWords("Błąd połączenia z silnikiem szachowym")
+            self.end_singleplayer_signal.emit()
+            
         # Setting layout
-        self.gridLayout_main = QGridLayout(self)
+        self.gridLayout_main = QHBoxLayout(self)
         self.gridLayout_main.setContentsMargins(0,0,0,0)
-        self.widgetSvg = QSvgWidget()
-        self.gridLayout_main.addWidget(self.widgetSvg)
-
-        # Sets svg widget position in self parent
-        self.widgetSvg.setGeometry(0, 0, 800, 800)
+        self.wallpaper = QWidget()
+        self.wallpaper_layout = QGridLayout(self.wallpaper)
+        self.wallpaper_layout.setContentsMargins(0,0,0,0)
+        self.gridLayout_main.addWidget(self.wallpaper)
+        self.widgetSvg = ChessboardWidget()
+        self.widgetSvg.setStyleSheet("background-color:white")
+        self.wallpaper_layout.addWidget(self.widgetSvg)
+        self.wallpaper.setStyleSheet(".QWidget{\n"
+            "border-image: url(:/Images/background.JPG) 0 0 0 0 stretch stretch;\n"
+            "background-position: center;\n"
+            "background-repeat: none;\n"
+            "}\n"
+            "}")
 
         # Initializing chessboard
         self.chessboard = chess.Board()
@@ -54,11 +69,10 @@ class Singleplayer(QWidget):
         # Preparing threads
         self.print_board_t = Thread(target=self.print_board)
         self.engineT = Thread(target=self.engine_move)
-        self.narratorT = Thread(target=self.welcome_sound)
+        self.wellcomeT = Thread(target=self.welcome_sound)
         self.print_board_t.daemon = True
         self.engineT.daemon = True
-        self.print_board_t.name = "Print board"
-        self.narratorT.name = "Narrator"
+        self.wellcomeT.daemon = True
         
         # Preparing events
         self.event_print_board = Event()
@@ -69,7 +83,7 @@ class Singleplayer(QWidget):
         self.engineT.start()
         
         self.event_print_board.set()
-        self.narratorT.start()
+        self.wellcomeT.start()
         
     # Function for initial game info
     def welcome_sound(self):
@@ -77,15 +91,15 @@ class Singleplayer(QWidget):
                 self.page_sound_text = "Witaj w grze. Aby wykonać ruch naciśnij spacje i podaj ruch w notacji SAN.\
                      Aby się poddać podaj komendę poddaj się. Aby sprawdzić zawartość pola na szachownicy,\
                           podaj komendę pole, a następnie a1"
-                rs.sayWords(self.page_sound_text)
+                speech.sayWords(self.page_sound_text)
                 self.settings.setValue("firstGame", "false")
         if(not self.player_turn):
-            rs.sayWords("Grę zaczyna przeciwnik")
+            speech.sayWords("Grę zaczyna przeciwnik")
             self.event_engine_move.set()
         else:
-            rs.sayWords("Rozpoczynasz grę")
-
-    # Function to refresh chessboard state
+            speech.sayWords("Rozpoczynasz grę")
+        
+    # Function to print chessboard
     def print_board(self):
         while True:
             if(self.threads_stop):
@@ -117,17 +131,17 @@ class Singleplayer(QWidget):
     # Function to get player move
     def player_move(self):
         try:
-            data = rs.get_turn()
+            data = speech.get_turn()
             if(data):
                 if(data["action"]=="surrender"):
-                    rs.sayWords("Poddano się")
+                    speech.sayWords("Poddano się")
                     self.end_singleplayer_signal.emit()
                 elif(data["action"]=="checkField"):
                     piece = self.chessboard.piece_at(chess.SQUARE_NAMES.index(data["field"]))
                     if(piece):
-                        rs.sayPiece(piece.color, piece.piece_type)
+                        speech.sayPiece(piece.color, piece.piece_type)
                     else:
-                        rs.sayWords("puste")
+                        speech.sayWords("puste")
                 elif(data["action"]=="move"):
                     try:
                         move = self.chessboard.parse_san(data["move"])
@@ -139,7 +153,7 @@ class Singleplayer(QWidget):
                             self.player_turn = False
                     except Exception as ex:
                         print("Errror: ", ex)
-                        rs.sayWords("Nieprawidłowy ruch")
+                        speech.sayWords("Nieprawidłowy ruch")
                 elif(data["action"] == "error"):
                     playsound("sound/bad.mp3")
                     print(data["errorMessage"])
@@ -155,26 +169,25 @@ class Singleplayer(QWidget):
             self.event_engine_move.wait()
             sleep(1)
             try:
-                result = ryba.play(self.chessboard, chess.engine.Limit( depth = self.stockfish_level[self.settings.value("stockfishLevel") - 1][0], 
+                result = engine.play(self.chessboard, chess.engine.Limit( depth = self.stockfish_level[self.settings.value("stockfishLevel") - 1][0], 
                 time = self.stockfish_level[self.settings.value("stockfishLevel") - 1][1]))
                 if result:
-                    # text = result.move.uci() # TODO
                     text = self.chessboard.san(result.move)
                     print(text)
                     if text:
-                        rs.sayPcMove(text)
+                        speech.sayPcMove(text)
                         self.sound_move(result.move)
                         self.chessboard.push(result.move)
                         self.event_print_board.set()
                         if(self.chessboard.is_checkmate()):
-                            rs.sayWords("Mat")
+                            speech.sayWords("Mat")
                         elif(self.chessboard.is_check()):
-                            rs.sayWords("Szach")
+                            speech.sayWords("Szach")
                 if(self.chessboard.is_variant_draw()):
-                    rs.sayWords("Remis")
+                    speech.sayWords("Remis")
                     self.end_singleplayer_signal.emit()
                 if(self.chessboard.is_game_over()):
-                    rs.sayWords("Przeciwnik wygrywa")
+                    speech.sayWords("Przeciwnik wygrywa")
                     self.end_singleplayer_signal.emit()
             except Exception as ex:
                 print("Engine move failed. Error: ", ex)
@@ -189,12 +202,8 @@ class Singleplayer(QWidget):
         if event.key() == Qt.Key_Space and self.player_turn:
             self.player_move()
 
-    # Resize event slot
-    @pyqtSlot(QWidget)
-    def resizeEvent(self, event):
-        self.widgetSvg.setFixedWidth(self.widgetSvg.height())
-
+    # Delete threads 
     def deleteThreads(self):
         print("Deleting threads")
-        ryba.close()
+        engine.close()
         self.threads_stop = True

@@ -1,7 +1,6 @@
 import speech_recognition as sr
 import re
 import pyttsx3 
-import sys
 from playsound import playsound
 
 dict_change = {
@@ -23,7 +22,6 @@ dict_change = {
 dict_pc = {
     'd': "de ", 
     'f': "ef ", 
-    # 'g': "ge ", 
     'h': "ha ", 
     "K": "król ",
     "Q": "hetman ",
@@ -48,12 +46,12 @@ dict_int = {
 
 def listen():
     playsound("sound/mic.mp3")
-    r= sr.Recognizer()
+    recognizer = sr.Recognizer()
     text = ""
     with sr.Microphone() as source:
         try:
-            audio = r.listen(source, 2, 4)
-            text = r.recognize_google(audio, language="pl")
+            audio = recognizer.listen(source, 2, 4)
+            text = recognizer.recognize_google(audio, language="pl")
         except Exception as ex:
                     print("listen function failed:", ex)
     if text == "":
@@ -203,7 +201,7 @@ def get_turn():
             if(match):
                 data["action"] = "checkField"
                 data["field"] = match.string
-        elif(len(text)<6 and re.search("[a-h][1-8]", text)):
+        elif(len(text)<6 and re.search("[a-h][1-8]|O-O", text)):
             data["action"] = "move"
             data["move"] = text
         else:
@@ -218,7 +216,7 @@ def sayWords(text):
     converter = pyttsx3.init()
     converter.stop()
     converter.setProperty('rate', 140) 
-    converter.setProperty('volume', 0.7)
+    converter.setProperty('volume', 1)
     converter.say(text)
     try:
         converter.runAndWait() 

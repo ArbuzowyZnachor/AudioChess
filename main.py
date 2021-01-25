@@ -2,7 +2,7 @@ from PyQt5 import  QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, Qt, QSettings
 from PyQt5.QtWidgets import QApplication, QWidget, QAction
 
-import recognize_speech as rs
+import speech
 from threading import Event, Thread
 
 from uifiles.mainUI import Ui_MainWindow
@@ -11,13 +11,31 @@ from multiplayer import Multiplayer
 from game_menu import GameMenu
 from settings_menu import SettingsMenu
 
-class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
+from urllib import request
+
+class Main(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None):
-        super(Ui, self).__init__(parent)
+        super(Main, self).__init__(parent)
+        if(not self.internet_on()):
+            speech.sayWords("Brak połączenia z siecią, wyjście z programu")
+            sys.exit()
+        # Setup games objects
+        self.singleplayer = None
+        self.multiplayer = None
+
         # Get application settings
         self.settings = QSettings('MyQtApp', 'App1')
-        self.settings.clear() # DEBUG
         self.settings_init()
+
+        # Setup UI and connect buttons to functions
+        self.setupUi(self)
+        self.setWindowTitle("Audio Szachy")
+        self.setWindowIcon(QtGui.QIcon('icon.png'))
+
+        # self.showFullScreen() # TODO DEBUG
+        self.pushButtonExit.clicked.connect(lambda: self.close())
+        self.pushButtonGame.clicked.connect(lambda : self.open_game_menu())
+        self.pushButtonSettings.clicked.connect(lambda : self.open_settings_menu())
 
         # Set pages info sound thread and event
         self.event_page_sound = Event()
@@ -25,18 +43,6 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
         self.page_sound_thread = Thread(target=self.page_sound)
         self.page_sound_thread.daemon = True
         self.page_sound_thread.start()
-        # self.main_menu_sound()
-
-        # Setup UI and connect buttons to functions
-        self.setupUi(self)
-        # self.showFullScreen() # TODO DEBUG
-        self.pushButtonExit.clicked.connect(lambda: self.close())
-        self.pushButtonGame.clicked.connect(lambda : self.open_game_menu())
-        self.pushButtonSettings.clicked.connect(lambda : self.open_settings_menu())
-
-        # Setup class logic
-        self.singleplayer = None
-        self.multiplayer = None
 
     # Settings init 
     def settings_init(self):
@@ -51,6 +57,14 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
             self.settings.setValue("firstSettingsMenu", "true")
             self.settings.setValue("firstGame", "true")
 
+    # Internet connection checking method
+    def internet_on(self):
+        try:
+            request.urlopen('http://216.58.192.142', timeout=1)
+            return True
+        except request.URLError as err: 
+            return False
+
     # Pages sound (Used in pages sound thread)
     def page_sound(self):
         while True:
@@ -58,7 +72,7 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
                 break
             self.event_page_sound.wait()
             self.event_page_sound.clear()
-            rs.sayWords(self.page_sound_text)
+            speech.sayWords(self.page_sound_text)
 
     # Create and display game menu window 
     def open_game_menu(self):
@@ -130,28 +144,6 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stackedWidget.removeWidget(self.stackedWidget.widget(1))
         self.menuPage.setFocus()
 
-    # Get voice command for main menu action
-    def main_menu_command(self):
-        try:
-            data = rs.get_main_menu_action()
-            if(data):
-                if(data["action"] == "play"):
-                    self.open_game_menu()
-                elif(data["action"] == "settings"):
-                    self.open_settings_menu()
-                elif(data["action"] == "exit"):
-                    self.close()
-                elif(data["action"] == "help"):
-                    rs.sayWords(data["helpMessage"])
-                elif(data["action"] == "error"):
-                    rs.sayWords(data["errorMessage"])
-                elif(data["action"] == "none"):
-                    pass
-                else:
-                    rs.sayWords("Brak odpowiedniej opcji")                                     
-        except Exception as ex:
-            print("Error:", ex)
-
     def main_menu_sound(self):
         if(self.settings.value("pageSound") == "true"):
             if(self.settings.value("firstMainMenu", "true") == "true"):
@@ -186,6 +178,28 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.page_sound_text = "Wybierz tryb gry"
                 self.event_page_sound.set()
 
+    # Get voice command for main menu action
+    def main_menu_command(self):
+        try:
+            data = speech.get_main_menu_action()
+            if(data):
+                if(data["action"] == "play"):
+                    self.open_game_menu()
+                elif(data["action"] == "settings"):
+                    self.open_settings_menu()
+                elif(data["action"] == "exit"):
+                    self.close()
+                elif(data["action"] == "help"):
+                    speech.sayWords(data["helpMessage"])
+                elif(data["action"] == "error"):
+                    speech.sayWords(data["errorMessage"])
+                elif(data["action"] == "none"):
+                    pass
+                else:
+                    speech.sayWords("Brak odpowiedniej opcji")                                     
+        except Exception as ex:
+            print("Error:", ex)
+
     @pyqtSlot(QWidget)
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Space:
@@ -197,15 +211,14 @@ class Ui(QtWidgets.QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(QWidget)
     def closeEvent(self, event):
-        print("nara")
         if(self.singleplayer):
             self.singleplayer.deleteThreads()
         if(self.multiplayer):
-            self.multiplayer.send_resign()
+            self.multiplayer.deleteThreads()
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    ui = Ui()
-    ui.show()
+    main = Main()
+    main.show()
     sys.exit(app.exec_())

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pawnsgame.ui'
+# Form implementation generated from reading ui file 'mainUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -14,8 +14,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1038, 834)
+        MainWindow.resize(1425, 914)
         MainWindow.setMinimumSize(QtCore.QSize(0, 0))
+        MainWindow.setStyleSheet("")
         MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         MainWindow.setDocumentMode(False)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -24,8 +25,24 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
         self.centralwidget.setSizePolicy(sizePolicy)
+        self.centralwidget.setStyleSheet("\n"
+".QPushButton:hover{ \n"
+"border-color: red;\n"
+"}\n"
+".QPushButton{\n"
+"background-color: white;\n"
+" border-style: solid;\n"
+" border-width:3px;\n"
+"border-color: black;\n"
+" border-radius:50px;\n"
+" min-width:100px;\n"
+" min-height:100px;\n"
+"font-size:60pt;\n"
+"}")
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName("gridLayout")
         self.stackedWidget = QtWidgets.QStackedWidget(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -35,6 +52,7 @@ class Ui_MainWindow(object):
         self.stackedWidget.setSizePolicy(sizePolicy)
         self.stackedWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.stackedWidget.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.stackedWidget.setStyleSheet("")
         self.stackedWidget.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.stackedWidget.setObjectName("stackedWidget")
         self.menuPage = QtWidgets.QWidget()
@@ -44,6 +62,11 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.menuPage.sizePolicy().hasHeightForWidth())
         self.menuPage.setSizePolicy(sizePolicy)
         self.menuPage.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.menuPage.setStyleSheet("#menuPage{\n"
+"border-image: url(:/Images/background.JPG) 0 0 0 0 stretch stretch;\n"
+"background-position: center;\n"
+"background-repeat: none;\n"
+"}")
         self.menuPage.setObjectName("menuPage")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.menuPage)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
@@ -64,6 +87,15 @@ class Ui_MainWindow(object):
         font.setPointSize(96)
         self.labelMenu.setFont(font)
         self.labelMenu.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.labelMenu.setStyleSheet("text-shadow: 5px 5px 0px #eb452b, \n"
+"                  10px 10px 0px #efa032, \n"
+"                  15px 15px 0px #46b59b, \n"
+"                  20px 20px 0px #017e7f, \n"
+"                  25px 25px 0px #052939, \n"
+"                  30px 30px 0px #c11a2b, \n"
+"                  35px 35px 0px #c11a2b, \n"
+"                  40px 40px 0px #c11a2b, \n"
+"                  45px 45px 0px #c11a2b;")
         self.labelMenu.setObjectName("labelMenu")
         self.horizontalLayout_menuTitle.addWidget(self.labelMenu)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -83,10 +115,11 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButtonGame.sizePolicy().hasHeightForWidth())
         self.pushButtonGame.setSizePolicy(sizePolicy)
-        self.pushButtonGame.setMinimumSize(QtCore.QSize(400, 50))
+        self.pushButtonGame.setMinimumSize(QtCore.QSize(106, 106))
         font = QtGui.QFont()
-        font.setPointSize(28)
+        font.setPointSize(60)
         self.pushButtonGame.setFont(font)
+        self.pushButtonGame.setStyleSheet("")
         self.pushButtonGame.setObjectName("pushButtonGame")
         self.verticalLayout_buttons.addWidget(self.pushButtonGame)
         spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -97,10 +130,11 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButtonSettings.sizePolicy().hasHeightForWidth())
         self.pushButtonSettings.setSizePolicy(sizePolicy)
-        self.pushButtonSettings.setMinimumSize(QtCore.QSize(400, 50))
+        self.pushButtonSettings.setMinimumSize(QtCore.QSize(106, 106))
         font = QtGui.QFont()
-        font.setPointSize(28)
+        font.setPointSize(60)
         self.pushButtonSettings.setFont(font)
+        self.pushButtonSettings.setStyleSheet("")
         self.pushButtonSettings.setObjectName("pushButtonSettings")
         self.verticalLayout_buttons.addWidget(self.pushButtonSettings)
         spacerItem5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -111,9 +145,9 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButtonExit.sizePolicy().hasHeightForWidth())
         self.pushButtonExit.setSizePolicy(sizePolicy)
-        self.pushButtonExit.setMinimumSize(QtCore.QSize(400, 50))
+        self.pushButtonExit.setMinimumSize(QtCore.QSize(106, 106))
         font = QtGui.QFont()
-        font.setPointSize(28)
+        font.setPointSize(60)
         self.pushButtonExit.setFont(font)
         self.pushButtonExit.setObjectName("pushButtonExit")
         self.verticalLayout_buttons.addWidget(self.pushButtonExit)
@@ -134,7 +168,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.labelMenu.setText(_translate("MainWindow", "Pawns Game"))
+        self.labelMenu.setText(_translate("MainWindow", "Audio szachy"))
         self.pushButtonGame.setText(_translate("MainWindow", "Graj"))
         self.pushButtonSettings.setText(_translate("MainWindow", "Ustawienia"))
         self.pushButtonExit.setText(_translate("MainWindow", "Wyjście"))
+from . import Images_rc
