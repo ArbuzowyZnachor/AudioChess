@@ -14,7 +14,7 @@ class SettingsMenu(QWidget, Ui_Form):
         super(SettingsMenu, self).__init__(parent)
         self.setupUi(self)
         self.setFocusPolicy(Qt.StrongFocus)
-        self.settings = QSettings('MyQtApp', 'App1')
+        self.settings = QSettings('UKW', 'AudioChess')
 
         # Set slider value
         self.horizontalSlider_stockfish_lvl.setValue(self.settings.value("stockfishLevel"))
@@ -26,12 +26,6 @@ class SettingsMenu(QWidget, Ui_Form):
             self.radioButton_black.setChecked(True)
         else:
             self.radioButton_random.setChecked(True)
-
-        # Set active microphone sound radioButtons
-        if(self.settings.value("activeMicSound") == "true"):
-            self.radioButton_ping_on.setChecked(True)
-        else:
-            self.radioButton_ping_off.setChecked(True)
 
         # Set page info sound radioButtons
         if(self.settings.value("pageSound") == "true"):
@@ -58,11 +52,6 @@ class SettingsMenu(QWidget, Ui_Form):
         else:
             self.settings.setValue("piecesColor", "random")
 
-        if(self.radioButton_ping_on.isChecked()):
-            self.settings.setValue("activeMicSound", "true")
-        else:
-            self.settings.setValue("activeMicSound", "false")
-
         if(self.radioButton_info_on.isChecked()):
             self.settings.setValue("pageSound", "true")
         else:
@@ -74,7 +63,7 @@ class SettingsMenu(QWidget, Ui_Form):
             data = speech.get_settings_action()
             if(data["action"] == "engine"):
                 self.horizontalSlider_stockfish_lvl.setValue(int(data["level"]))
-                text = "Ustawiono poziom na " + str(data["level"])
+                text = "Ustawiono poziom trudności na " + str(data["level"])
                 self.horizontalSlider_stockfish_lvl.update()
                 speech.sayWords(text)
 
@@ -89,21 +78,13 @@ class SettingsMenu(QWidget, Ui_Form):
                     self.radioButton_random.setChecked(True)
                     speech.sayWords("Ustawiono kolor figur na losowy")
                 
-            elif(data["action"] == "activeMicSound"):
-                if data["activeMicSound"] == "on":
-                    self.radioButton_ping_on.setChecked(True)
-                    speech.sayWords("Ustawiono dźwięk aktywnego mikrofonu na włączony")
-                elif data["activeMicSound"] == "off":
-                    self.radioButton_ping_off.setChecked(True)
-                    speech.sayWords("Ustawiono dźwięk aktywnego mikrofonu na wyłączony")
-            
             elif(data["action"] == "pageSound"):
                 if data["pageSound"] == "on":
                     self.radioButton_info_on.setChecked(True)
-                    speech.sayWords("Ustawiono komunikaty aktywnego okna na włączone")
+                    speech.sayWords("Włączono komunikaty głosowe")
                 elif data["pageSound"] == "off":
                     self.radioButton_info_off.setChecked(True)
-                    speech.sayWords("Ustawiono komunikaty aktywnego okna na wyłączone")
+                    speech.sayWords("Wyłączono komunikaty głosowe")
 
             elif(data["action"] == "help"):
                 speech.sayWords(self.helpMessage)
@@ -113,7 +94,7 @@ class SettingsMenu(QWidget, Ui_Form):
 
             elif(data["action"] == "save"):
                 self.save_settings()
-                speech.sayWords("Ustwienia zapisane")
+                speech.sayWords("Zapisano ustawienia")
 
             elif(data["action"] == "error"):
                 speech.sayWords(data["errorMessage"])

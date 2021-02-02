@@ -2,9 +2,35 @@ import speech_recognition as sr
 import re
 import pyttsx3 
 from playsound import playsound
+import logging
 
-dict_change = {
-    "-": "",
+#======================== Microphone input function ==========================
+
+# Listen microphone input and return as a text
+def listen():
+    playsound("sound/mic.mp3")
+    recognizer = sr.Recognizer()
+    text = ""
+    with sr.Microphone() as source:
+        try:
+            audio = recognizer.listen(source, 2, 4)
+            text = recognizer.recognize_google(audio, language="pl")
+        except Exception as ex:
+                    logging.exception("listen function failed:", ex)
+    if text == "":
+        playsound("sound/error.mp3")
+    return text
+
+#======================== Replacer function and dictionaries =================
+
+def replacer(text, dictionary):
+    for x in dictionary:
+        text = text.replace(x, dictionary[x])
+    return text
+
+player_move_dict = {
+    "pionek": "",
+    "pion": "",
     "król":"K",
     "hetman":"Q",
     "goniec":"B",
@@ -17,12 +43,16 @@ dict_change = {
     "koniec": "B",
     "koczek":"N",
     "lew": "f",
-}
+    "-": ""}
 
-dict_pc = {
+move_dict = {
     'd': "de ", 
     'f': "ef ", 
     'h': "ha ", 
+    "=Q": "promocja do hetmana",
+    "=R": "promocja do wieży",
+    "=B": "promocja do gońca",
+    "=N": "promocja do skoczka",
     "K": "król ",
     "Q": "hetman ",
     "B": "goniec ",
@@ -31,9 +61,9 @@ dict_pc = {
     "O-O-O": "długaroszada " ,
     "O-O": "krótkaroszada ",
     "x": "bije ",
-}
+    "+": ""}
 
-dict_int = {
+level_dict = {
     "jeden": "1",
     "dwa": "2",
     "trzy": "3",
@@ -41,22 +71,9 @@ dict_int = {
     "pięć": "5",
     "sześć": "6",
     "siedem": "7",
-    "osiem": "8",
-}
+    "osiem": "8"}
 
-def listen():
-    playsound("sound/mic.mp3")
-    recognizer = sr.Recognizer()
-    text = ""
-    with sr.Microphone() as source:
-        try:
-            audio = recognizer.listen(source, 2, 4)
-            text = recognizer.recognize_google(audio, language="pl")
-        except Exception as ex:
-                    print("listen function failed:", ex)
-    if text == "":
-        playsound("sound/bad.mp3")
-    return text
+#======================== Pages action functions =============================
 
 def get_main_menu_action():
     data = {}
@@ -67,7 +84,7 @@ def get_main_menu_action():
             data["action"] = "play"
         elif(re.search("(ustawienia|opcje)", text)):
             data["action"] = "settings"
-        elif(re.search("(wyjście|zakończ|zamknij|wyjdź)", text)):
+        elif(re.search("(wyjś|zakończ|zamknij|wyjdź|powrót|wróc)", text)):
             data["action"] = "exit"  
         elif(re.search("(pomoc|instrukcj|corobić|jak|pomóż)", text)):
             data["action"] = "help"
@@ -104,17 +121,17 @@ def get_settings_action():
     data = {}
     text = listen()
     if(text):
-        text = replacer(text, dict_int)
         text = text.replace(" ","").lower()
         if(re.search("(poziom|trud|moc|pc|komputer)", text)):
+            text = replacer(text, level_dict)
             try:
-                match = re.search("(\d)", text)
+                match = re.search("[1-8]", text)
                 if match:
                     data["level"] = match.group(0)
                     data["action"] = "engine"
                 else:
                     data["action"] = "error"
-                    data["errorMessage"] = "Nieprawidłowa opcja"
+                    data["errorMessage"] = "Nieprawidłowy poziom trudności"
             except Exception as ex:
                 print("get_settings_action failed:", ex)
                 data["action"] = "error"
@@ -187,23 +204,13 @@ def get_settings_action():
         data["action"] = "none"
     return data
 
-def get_turn():
+def get_wait_action():
     data = {}
     text = listen()
     if text:
         text = text.replace(" ","").lower()
-        text = replacer(text, dict_change)
-        if text == "poddajsię":
-            data["action"] = "surrender"
-        elif (re.search("pole", text)):
-            text = text.replace("pole","")
-            match = re.search("[a-h][1-8]", text)
-            if(match):
-                data["action"] = "checkField"
-                data["field"] = match.string
-        elif(len(text)<6 and re.search("[a-h][1-8]|O-O", text)):
-            data["action"] = "move"
-            data["move"] = text
+        if(re.search("(wyjście|zakończ|zamknij|wyjdź|powrót|wróc)", text)):
+            data["action"] = "return"
         else:
             print(text)
             data["action"] = "error"
@@ -211,6 +218,36 @@ def get_turn():
     else:
         data["action"] = "none"
     return data
+
+def get_player_action():
+    data = {}
+    text = listen()
+    if text:
+        text = text.replace(" ","").lower()
+        if re.search("poddaj", text):
+            data["action"] = "surrender"
+        elif (re.search("pole", text)):
+            text = text.replace("pole","")
+            match = re.search("[a-h][1-8]", text)
+            data["action"] = "checkField"
+            if(match):
+                data["field"] = match.group(0)
+            else:
+                data["field"] = "badfield"
+        else:
+            text = replacer(text, player_move_dict)
+            if(len(text)<6 and re.search("[a-h][1-8]|O-O", text)): 
+                data["action"] = "move"
+                data["move"] = text
+            else:
+                print(text)
+                data["action"] = "error"
+                # data["errorMessage"] = "Niepoprawna akcja"
+    else:
+        data["action"] = "none"
+    return data
+
+#======================== Output audio functions =============================
 
 def sayWords(text):
     converter = pyttsx3.init()
@@ -223,26 +260,22 @@ def sayWords(text):
     except Exception as ex:
         print("Error: ", ex)
 
-def sayPiece(color, type):
+def sayPiece(field, color, type):
+    text = field
     figury = ("pionek", "skoczek", "goniec", "wieża", "hetman", "król")
     if(color):
         if(type == 4):
-            text = "biała "
+            text += "biała "
         else:
-            text = "biały "
+            text += "biały "
     else:
         if(type == 4):
-            text = "czarna "
+            text += "czarna "
         else:
-            text = "czarny "
+            text += "czarny "
     text += figury[type-1]
     sayWords(text)
 
-def replacer(text, dictionary):
-    for x in dictionary:
-        text = text.replace(x, dictionary[x])
-    return text
-
-def sayPcMove(text):
-    text = replacer(text, dict_pc)
+def sayMove(text):
+    text = replacer(text, move_dict)
     sayWords(text)

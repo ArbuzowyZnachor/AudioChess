@@ -359,70 +359,6 @@ QSlider::handle:horizontal {
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="label_3">
-           <property name="font">
-            <font>
-             <pointsize>36</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Dzwięk aktywnego mikrofonu:</string>
-           </property>
-           <property name="textFormat">
-            <enum>Qt::AutoText</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="horizontalGroupBox_2">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QRadioButton" name="radioButton_ping_on">
-              <property name="font">
-               <font>
-                <pointsize>30</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Włącz</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_ping_off">
-              <property name="font">
-               <font>
-                <pointsize>30</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Wyłącz</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_4">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Minimum</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <widget class="QLabel" name="label_4">
            <property name="font">
             <font>
@@ -531,16 +467,6 @@ QSlider::handle:horizontal {
           </spacer>
          </item>
         </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QFrame" name="frame">
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
        </widget>
       </item>
       <item>

@@ -1,17 +1,21 @@
-from PyQt5 import  QtCore, QtGui, QtWidgets
+import logging
+
+from game import Game
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, Qt, QSettings
-from PyQt5.QtWidgets import QApplication, QWidget, QAction
+from PyQt5.QtWidgets import QApplication, QWidget
 
 import speech
 from threading import Event, Thread
 
 from uifiles.mainUI import Ui_MainWindow
-from singleplayer import Singleplayer
-from multiplayer import Multiplayer
+from game import Game
 from game_menu import GameMenu
 from settings_menu import SettingsMenu
 
 from urllib import request
+
+logging.basicConfig(filename='client_errors.log', level=logging.ERROR)
 
 class Main(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent = None):
@@ -19,12 +23,12 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         if(not self.internet_on()):
             speech.sayWords("Brak połączenia z siecią, wyjście z programu")
             sys.exit()
-        # Setup games objects
-        self.singleplayer = None
-        self.multiplayer = None
+
+        # Setup game object
+        self.game = None
 
         # Get application settings
-        self.settings = QSettings('MyQtApp', 'App1')
+        self.settings = QSettings('UKW', 'AudioChess')
         self.settings_init()
 
         # Setup UI and connect buttons to functions
@@ -38,9 +42,9 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButtonSettings.clicked.connect(lambda : self.open_settings_menu())
 
         # Set pages info sound thread and event
-        self.event_page_sound = Event()
+        self.page_sound_event = Event()
         self.threads_stop = False
-        self.page_sound_thread = Thread(target=self.page_sound)
+        self.page_sound_thread = Thread(target=self.page_sound, name = "Page sound")
         self.page_sound_thread.daemon = True
         self.page_sound_thread.start()
 
@@ -50,14 +54,13 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
             self.settings.setValue("firstStart", "false")
             self.settings.setValue("stockfishLevel", 4)
             self.settings.setValue("piecesColor", "random")
-            self.settings.setValue("activeMicSound", "true")
             self.settings.setValue("pageSound", "true")
             self.settings.setValue("firstMainMenu", "true")
             self.settings.setValue("firstGameMenu", "true")
             self.settings.setValue("firstSettingsMenu", "true")
             self.settings.setValue("firstGame", "true")
 
-    # Internet connection checking method
+    # Internet connection check
     def internet_on(self):
         try:
             request.urlopen('http://216.58.192.142', timeout=1)
@@ -65,121 +68,10 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         except request.URLError as err: 
             return False
 
-    # Pages sound (Used in pages sound thread)
-    def page_sound(self):
-        while True:
-            if(self.threads_stop):
-                break
-            self.event_page_sound.wait()
-            self.event_page_sound.clear()
-            speech.sayWords(self.page_sound_text)
+#======================== Voice command function =============================
 
-    # Create and display game menu window 
-    def open_game_menu(self):
-        self.menuPage.clearFocus()
-        self.game_menu = GameMenu(self)
-        self.stackedWidget.addWidget(self.game_menu)
-        self.stackedWidget.setCurrentIndex(1)
-        self.game_menu.close_game_menu_signal.connect(lambda : self.close_game_menu())
-        self.game_menu.start_singleplayer_signal.connect(lambda: self.start_singleplayer())
-        self.game_menu.start_multiplayer_signal.connect(lambda: self.start_multiplayer())
-        self.game_menu.setFocus()
-        self.game_menu_sound()
-
-    # Return from game menu
-    def close_game_menu(self):
-        self.stackedWidget.setCurrentIndex(0)
-        self.stackedWidget.removeWidget(self.stackedWidget.widget(1))
-        self.menuPage.setFocus()
-
-    # Starts game with computer
-    def start_singleplayer(self):
-        self.singleplayer = Singleplayer()
-        self.stackedWidget.addWidget(self.singleplayer)
-        self.stackedWidget.setCurrentIndex(2)
-        self.stackedWidget.widget(1).clearFocus()
-        self.singleplayer.end_singleplayer_signal.connect(lambda : self.end_singleplayer())
-        self.singleplayer.setFocus()
-
-    # Closes game with computer
-    def end_singleplayer(self):
-        self.stackedWidget.setCurrentIndex(1)
-        self.stackedWidget.widget(2).clearFocus
-        self.stackedWidget.removeWidget(self.stackedWidget.widget(2))
-        self.stackedWidget.widget(1).setFocus()
-        self.singleplayer.deleteThreads()
-        self.singleplayer.deleteLater()
-        self.game_menu_sound()
-
-    # Starts game with player
-    def start_multiplayer(self):
-        self.multiplayer = Multiplayer()
-        self.stackedWidget.addWidget(self.multiplayer)
-        self.stackedWidget.setCurrentIndex(2)
-        self.stackedWidget.widget(1).clearFocus()
-        self.multiplayer.end_multiplayer_signal.connect(lambda : self.end_multiplayer())
-        self.multiplayer.setFocus()
-
-    # Closes game with player
-    def end_multiplayer(self):
-        self.stackedWidget.setCurrentIndex(1)
-        self.stackedWidget.widget(2).clearFocus
-        self.stackedWidget.removeWidget(self.stackedWidget.widget(2))
-        self.stackedWidget.widget(1).setFocus()
-        self.multiplayer.deleteThreads()
-        self.multiplayer.deleteLater()
-
-    def open_settings_menu(self):
-        self.menuPage.clearFocus()
-        self.settings_menu = SettingsMenu(self)
-        self.stackedWidget.addWidget(self.settings_menu)
-        self.stackedWidget.setCurrentIndex(1)
-        self.settings_menu.setFocus()
-        self.settings_menu.close_settings_menu_signal.connect(lambda: self.close_settings_menu())
-        self.settings_menu_sound()
-
-    def close_settings_menu(self):
-        self.settings_menu.clearFocus()
-        self.stackedWidget.setCurrentIndex(0)
-        self.stackedWidget.removeWidget(self.stackedWidget.widget(1))
-        self.menuPage.setFocus()
-
-    def main_menu_sound(self):
-        if(self.settings.value("pageSound") == "true"):
-            if(self.settings.value("firstMainMenu", "true") == "true"):
-                self.page_sound_text = "Witaj w menu głównym gry. Aby używać komend głosowych naciśnij \
-                    przycisk spacji oraz podaj jedną z dostępnych opcji. \
-                    Jeżeli potrzebujesz pomocy, podaj komendę pomoc. \
-                    Dostępne opcje to rozpocznij gre, ustawienia oraz wyjscie z programu"
-                self.event_page_sound.set()
-                self.settings.setValue("firstMainMenu", "false")
-            else:
-                self.page_sound_text = "Menu główne"
-                self.event_page_sound.set()
-    
-    def settings_menu_sound(self):
-        if(self.settings.value("pageSound") == "true"):
-            self.page_sound_text = "Ustawienia"
-            self.event_page_sound.set()
-            if(self.settings.value("firstSettingsMenu", "true") == "true"):
-                self.page_sound_text = "Dostępne opcje to: poziom komputera od jeden do osiem. Kolor figur: białe, czarne albo losowe. \
-                    Dźwięk aktywnego mikrofonu: włączony albo wyłączony. Oraz komunikaty głosowe: włączone lub wyłączone. \
-                    Zapisz aby zapisać zmiany. Powrót aby wrócić do menu"
-                self.event_page_sound.set()
-                self.settings.setValue("firstSettingsMenu", "false")
-
-    def game_menu_sound(self):
-        if(self.settings.value("pageSound") == "true"):
-            if(self.settings.value("firstGameMenu", "true") == "true"):
-                self.page_sound_text = "Wybór trybu gry. Dostępne opcje to gra z komputerem, online oraz powrót"
-                self.event_page_sound.set()
-                self.settings.setValue("firstGameMenu", "false")
-            else:
-                self.page_sound_text = "Wybierz tryb gry"
-                self.event_page_sound.set()
-
-    # Get voice command for main menu action
-    def main_menu_command(self):
+    # Get and perform voice command for main menu
+    def main_menu_action(self):
         try:
             data = speech.get_main_menu_action()
             if(data):
@@ -198,12 +90,128 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
                 else:
                     speech.sayWords("Brak odpowiedniej opcji")                                     
         except Exception as ex:
-            print("Error:", ex)
+            logging.exception('message')
+
+#======================== App pages functions ================================
+
+    # Open game menu page 
+    def open_game_menu(self):
+        self.menuPage.clearFocus()
+        self.game_menu = GameMenu(self)
+        self.stackedWidget.addWidget(self.game_menu)
+        self.stackedWidget.setCurrentIndex(1)
+        self.game_menu.close_game_menu_signal.connect(
+            lambda : self.close_game_menu())
+        self.game_menu.start_singleplayer_signal.connect(
+            lambda: self.start_game(False))
+        self.game_menu.start_multiplayer_signal.connect(
+            lambda: self.start_game(True))
+        self.game_menu.setFocus()
+        self.game_menu_sound()
+
+    # Close game menu page
+    def close_game_menu(self):
+        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.removeWidget(self.stackedWidget.widget(1))
+        self.menuPage.setFocus()
+
+    # Open game page
+    def start_game(self, online):
+        self.game = Game(online)
+        self.stackedWidget.addWidget(self.game)
+        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.widget(1).clearFocus()
+        self.game.end_game.connect(lambda : self.end_game())
+        self.game.setFocus()
+
+    # Close game page
+    def end_game(self):
+        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.widget(2).clearFocus()
+        self.stackedWidget.removeWidget(self.stackedWidget.widget(2))
+        self.stackedWidget.widget(1).setFocus()
+        self.game.delete_threads()
+        self.game.deleteLater()
+        self.game_menu_sound()
+
+    # Open settings menu page
+    def open_settings_menu(self):
+        self.menuPage.clearFocus()
+        self.settings_menu = SettingsMenu(self)
+        self.stackedWidget.addWidget(self.settings_menu)
+        self.stackedWidget.setCurrentIndex(1)
+        self.settings_menu.setFocus()
+        self.settings_menu.close_settings_menu_signal.connect(
+            lambda: self.close_settings_menu())
+        self.settings_menu_sound()
+
+    # Close settings menu page
+    def close_settings_menu(self):
+        self.settings_menu.clearFocus()
+        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.removeWidget(self.stackedWidget.widget(1))
+        self.menuPage.setFocus()
+
+#======================== Pages communique functions =========================
+
+    # Pages sound (Used in page_sound_thread)
+    def page_sound(self):
+        while True:
+            if(self.threads_stop):
+                break
+            self.page_sound_event.wait()
+            self.page_sound_event.clear()
+            speech.sayWords(self.page_sound_text)
+
+    # Play main menu communique sound
+    def main_menu_sound(self):
+        if(self.settings.value("pageSound") == "true"):
+            if(self.settings.value("firstMainMenu", "true") == "true"):
+                self.page_sound_text = "Witaj w menu głównym gry. \
+                    Aby używać komend głosowych naciśnij \
+                    przycisk spacji oraz podaj jedną z dostępnych opcji. \
+                    Jeżeli potrzebujesz pomocy, podaj komendę pomoc. \
+                    Dostępne opcje to rozpocznij gre, \
+                        ustawienia oraz wyjscie z programu"
+                self.page_sound_event.set()
+                self.settings.setValue("firstMainMenu", "false")
+            else:
+                self.page_sound_text = "Menu główne"
+                self.page_sound_event.set()
+
+    # Play setting menu communique sound
+    def settings_menu_sound(self):
+        if(self.settings.value("pageSound") == "true"):
+            self.page_sound_text = "Ustawienia"
+            self.page_sound_event.set()
+            if(self.settings.value("firstSettingsMenu", "true") == "true"):
+                self.page_sound_text = "\
+                    Dostępne opcje to: poziom komputera od jeden do osiem. \
+                    Kolor figur: białe, czarne albo losowe. \
+                    Dźwięk aktywnego mikrofonu: włączony albo wyłączony. \
+                    Oraz komunikaty głosowe: włączone lub wyłączone. \
+                    Zapisz aby zapisać zmiany. Powrót aby wrócić do menu"
+                self.page_sound_event.set()
+                self.settings.setValue("firstSettingsMenu", "false")
+
+    # Play game menu communique sound
+    def game_menu_sound(self):
+        if(self.settings.value("pageSound") == "true"):
+            if(self.settings.value("firstGameMenu", "true") == "true"):
+                self.page_sound_text = "Wybór trybu gry. \
+                    Dostępne opcje to gra z komputerem, online oraz powrót"
+                self.page_sound_event.set()
+                self.settings.setValue("firstGameMenu", "false")
+            else:
+                self.page_sound_text = "Wybierz tryb gry"
+                self.page_sound_event.set()
+
+#======================== Event functions ====================================
 
     @pyqtSlot(QWidget)
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Space:
-            self.main_menu_command()
+            self.main_menu_action()
 
     @pyqtSlot(QWidget)
     def showEvent(self, event):
@@ -211,14 +219,12 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(QWidget)
     def closeEvent(self, event):
-        if(self.singleplayer):
-            self.singleplayer.deleteThreads()
-        if(self.multiplayer):
-            self.multiplayer.deleteThreads()
+        if(self.game):
+            self.game.delete_threads()
 
 if __name__ == "__main__":
     import sys
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     main = Main()
     main.show()
     sys.exit(app.exec_())
