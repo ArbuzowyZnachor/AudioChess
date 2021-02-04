@@ -1,5 +1,5 @@
 import logging
-
+import pyttsx3
 from game import Game
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, Qt, QSettings

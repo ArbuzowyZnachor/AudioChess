@@ -32,12 +32,13 @@ class Game(QWidget, ConnectionListener):
     engine = None
     gameActive = False
     connected = False
+    engine_level = 4
 
     def __init__(self, online):
         super().__init__(parent=None)
         self.online = online
 
-        self.settings = QSettings('MyQtApp', 'App1')
+        self.settings = QSettings('UKW', 'AudioChess')
         self.setFocusPolicy(Qt.StrongFocus)
         
         if(self.online):
@@ -56,6 +57,11 @@ class Game(QWidget, ConnectionListener):
             else:
                 self.player_colour = random.getrandbits(1)
             self.player_turn = bool(self.player_colour)
+
+            if(self.settings.value("stockfishLevel") != None):
+                self.engine_level = self.settings.value("stockfishLevel")
+            else:
+                logging.error("Engine level error. Could not read engine level setting")
 
             # Initialize enigne from exe file
             try:
@@ -101,7 +107,7 @@ class Game(QWidget, ConnectionListener):
         if(self.online):
             self.client_thread = Thread(target=self.client, name = "Client")
             self.client_thread.daemon = True
-            self.Connect(("localhost", 5554))
+            self.Connect(("192.168.1.13", 5554))
             self.client_thread.start()
         else:
             self.engine_move_thread = Thread(
@@ -258,9 +264,9 @@ class Game(QWidget, ConnectionListener):
                 result = self.engine.play(self.chessboard, 
                 chess.engine.Limit(
                     depth = self.stockfish_level
-                    [self.settings.value("stockfishLevel") - 1][0], 
+                    [self.engine_level - 1][0], 
                     time = self.stockfish_level
-                    [self.settings.value("stockfishLevel") - 1][1]))
+                    [self.engine_level - 1][1]))
                 if result:
                     text = self.chessboard.san(result.move)
                     if text:
@@ -394,5 +400,6 @@ class Game(QWidget, ConnectionListener):
             self.threads_stop = True
         else:
             self.threads_stop = True
+            # if self.engine.
             self.engine.close()
             self.engine_move_event.set()

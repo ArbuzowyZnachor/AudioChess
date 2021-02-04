@@ -1,6 +1,6 @@
+import pyttsx3
 import speech_recognition as sr
 import re
-import pyttsx3 
 from playsound import playsound
 import logging
 
@@ -42,8 +42,7 @@ player_move_dict = {
     "ch": "h",
     "koniec": "B",
     "koczek":"N",
-    "lew": "f",
-    "-": ""}
+    "lew": "f",}
 
 move_dict = {
     'd': "de ", 
@@ -253,7 +252,7 @@ def sayWords(text):
     converter = pyttsx3.init()
     converter.stop()
     converter.setProperty('rate', 140) 
-    converter.setProperty('volume', 1)
+    converter.setProperty('volume', 0.8)
     converter.say(text)
     try:
         converter.runAndWait() 
