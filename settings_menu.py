@@ -37,9 +37,11 @@ class SettingsMenu(QWidget, Ui_Form):
         self.pushButton_return.clicked.connect(lambda: self.close_settings_menu_signal.emit())
         self.pushButton_save.clicked.connect(lambda: self.save_settings())
 
-        self.helpMessage = "Dostępne opcje to: poziom komputera od jeden do osiem. Kolor figur: białe, czarne albo losowe. \
-                    Dźwięk aktywnego mikrofonu: włączony albo wyłączony. Oraz komunikaty głosowe: włączone lub wyłączone. \
-                    Zapisz aby zapisać zmiany. Powrót aby wrócić do menu"
+        self.helpMessage = "Dostępne opcje to: poziom komputera od jeden do osiem. \
+            Kolor figur: białe, czarne albo losowe. \
+            Komunikaty głosowe: włączone lub wyłączone. \
+            Aby zapisać zmiany wybierz: Zapisz. \
+            Aby wrócić do menu głównego wybierz: Powrót"
 
     # Function to save settings before exit
     def save_settings(self):

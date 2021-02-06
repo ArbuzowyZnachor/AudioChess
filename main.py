@@ -29,6 +29,7 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Get application settings
         self.settings = QSettings('UKW', 'AudioChess')
+        self.settings.clear()
         self.settings_init()
 
         # Setup UI and connect buttons to functions
@@ -114,6 +115,7 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stackedWidget.setCurrentIndex(0)
         self.stackedWidget.removeWidget(self.stackedWidget.widget(1))
         self.menuPage.setFocus()
+        self.main_menu_sound()
 
     # Open game page
     def start_game(self, online):
@@ -151,6 +153,8 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stackedWidget.setCurrentIndex(0)
         self.stackedWidget.removeWidget(self.stackedWidget.widget(1))
         self.menuPage.setFocus()
+        self.main_menu_sound()
+
 
 #======================== Pages communique functions =========================
 
@@ -221,6 +225,7 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         if(self.game):
             self.game.delete_threads()
+
 
 if __name__ == "__main__":
     import sys

@@ -31,18 +31,20 @@ def replacer(text, dictionary):
 player_move_dict = {
     "pionek": "",
     "pion": "",
-    "król":"K",
     "hetman":"Q",
+    "dama":"Q",
+    "królowa":"Q",
+    "król":"K",
     "goniec":"B",
     "skoczek":"N",
+    "koń":"N",
     "wieża":"R",
     "długaroszada": "O-O-O",
     "krótkaroszada":"O-O",
     "roszada":"O-O",
-    "ch": "h",
-    "koniec": "B",
-    "koczek":"N",
-    "lew": "f",}
+    "lew": "f",
+    "p":"b",
+    "t":"d",}
 
 move_dict = {
     'd': "de ", 

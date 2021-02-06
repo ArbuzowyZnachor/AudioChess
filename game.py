@@ -22,6 +22,7 @@ class ChessboardWidget(QSvgWidget):
 
     def showEvent(self, event):
         self.setFixedWidth(self.height())
+
     def resizeEvent(self, event):
         self.setFixedWidth(self.height())
 
