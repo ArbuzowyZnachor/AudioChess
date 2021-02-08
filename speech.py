@@ -16,9 +16,11 @@ def listen():
             audio = recognizer.listen(source, 2, 4)
             text = recognizer.recognize_google(audio, language="pl")
         except Exception as ex:
-                    logging.exception("listen function failed:", ex)
-    if text == "":
-        playsound("sound/error.mp3")
+            playsound("sound/error.mp3")
+            logging.exception("listen function failed:", ex)
+        else:
+            if text == "":
+                playsound("sound/error.mp3")
     return text
 
 #======================== Replacer function and dictionaries =================
@@ -47,6 +49,7 @@ player_move_dict = {
     "t":"d",}
 
 move_dict = {
+
     'd': "de ", 
     'f': "ef ", 
     'h': "ha ", 
@@ -54,11 +57,11 @@ move_dict = {
     "=R": "promocja do wieży",
     "=B": "promocja do gońca",
     "=N": "promocja do skoczka",
-    "K": "król ",
-    "Q": "hetman ",
-    "B": "goniec ",
-    "N": "skoczek ",
-    "R": "wieża ",
+    "K": "król, ",
+    "Q": "hetman, ",
+    "B": "goniec, ",
+    "N": "skoczek, ",
+    "R": "wieża, ",
     "O-O-O": "długaroszada " ,
     "O-O": "krótkaroszada ",
     "x": "bije ",
@@ -74,9 +77,9 @@ level_dict = {
     "siedem": "7",
     "osiem": "8"}
 
-#======================== Pages action functions =============================
+#======================== Pages command functions =============================
 
-def get_main_menu_action():
+def get_main_menu_command():
     data = {}
     text = listen()
     if(text):
@@ -85,9 +88,9 @@ def get_main_menu_action():
             data["action"] = "play"
         elif(re.search("(ustawienia|opcje)", text)):
             data["action"] = "settings"
-        elif(re.search("(wyjś|zakończ|zamknij|wyjdź|powrót|wróc)", text)):
+        elif(re.search("(wyjś|zakończ|zamknij|wyjdź|powrót|wróc|program)", text)):
             data["action"] = "exit"  
-        elif(re.search("(pomoc|instrukcj|corobić|jak|pomóż)", text)):
+        elif(re.search("(pomoc|instrukcj|corobić|pomóż)", text)):
             data["action"] = "help"
             data["helpMessage"] = "Dostępne komendy to: rozpocznij grę, ustawienia oraz wyjście"
         else:
@@ -97,7 +100,7 @@ def get_main_menu_action():
         data["action"] = "none"
     return data
 
-def get_game_menu_action():
+def get_game_menu_command():
     data = {}
     text = listen()
     if(text):
@@ -118,7 +121,7 @@ def get_game_menu_action():
         data["action"] = "none"
     return data
 
-def get_settings_action():
+def get_settings_command():
     data = {}
     text = listen()
     if(text):
@@ -205,7 +208,7 @@ def get_settings_action():
         data["action"] = "none"
     return data
 
-def get_wait_action():
+def get_wait_command():
     data = {}
     text = listen()
     if text:
@@ -220,7 +223,7 @@ def get_wait_action():
         data["action"] = "none"
     return data
 
-def get_player_action():
+def get_player_command():
     data = {}
     text = listen()
     if text:
@@ -256,10 +259,10 @@ def sayWords(text):
     converter.setProperty('rate', 140) 
     converter.setProperty('volume', 0.8)
     converter.say(text)
-    try:
-        converter.runAndWait() 
-    except Exception as ex:
-        print("Error: ", ex)
+    # try:
+    converter.runAndWait() 
+    # except Exception as ex:
+    #     print("Error: ", ex)
 
 def sayPiece(field, color, type):
     text = field

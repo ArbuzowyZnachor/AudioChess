@@ -26,31 +26,33 @@ class ChessboardWidget(QSvgWidget):
     def resizeEvent(self, event):
         self.setFixedWidth(self.height())
 
-
 class Game(QWidget, ConnectionListener):
-    end_game = pyqtSignal()
+    end_game_signal = pyqtSignal()
+    check_field_signal = pyqtSignal(object)
+    player_move_signal = pyqtSignal(object)
+
     threads_stop = False
     engine = None
     gameActive = False
     connected = False
     engine_level = 4
 
+#======================== Init function ======================================
     def __init__(self, online):
         super().__init__(parent=None)
         self.online = online
+        self.check_field_signal.connect(lambda x: self.check_field(x))
+        self.player_move_signal.connect(lambda x: self.player_move(x))
+
 
         self.settings = QSettings('UKW', 'AudioChess')
         self.setFocusPolicy(Qt.StrongFocus)
         
+#======================== Set singleplayer color and turn ====================
         if(self.online):
             self.player_colour = 2
             self.player_turn = False
         else:
-            # Create Stockfish levels
-            self.stockfish_level = ((1, 0.05), (2, 0.1), (3, 0.15), 
-            (4, 0.2), (6, 0.25), (8, 0.3), (10, 0.35), (12, 0.4))
-
-            # Set singleplayer color and turn
             if(self.settings.value("piecesColor") == "white"):
                 self.player_colour = 1
             elif(self.settings.value("piecesColor") == "black"):
@@ -59,21 +61,25 @@ class Game(QWidget, ConnectionListener):
                 self.player_colour = random.getrandbits(1)
             self.player_turn = bool(self.player_colour)
 
+#======================== Create Stockfish levels ============================
+            self.stockfish_level = ((1, 0.05), (1, 0.1), (2, 0.15), 
+            (2, 0.2), (3, 0.25), (3, 0.3), (3, 0.35), (4, 0.4))
+
             if(self.settings.value("stockfishLevel") != None):
                 self.engine_level = self.settings.value("stockfishLevel")
             else:
                 logging.error("Engine level error. Could not read engine level setting")
 
-            # Initialize enigne from exe file
+#======================== Initialize enigne from exe file ====================
             try:
                 self.engine = chess.engine.SimpleEngine.popen_uci(
                     "stockfish_20011801_x64.exe")
             except Exception:
                 logging.exception('Engine initialization error')
                 speech.sayWords("Błąd połączenia z silnikiem szachowym")
-                self.end_game.emit()
+                self.end_game_signal.emit()
             
-        # Build Game widget layout
+#======================== Build Game widget layout ===========================
         self.gridLayout_main = QHBoxLayout(self)
         self.gridLayout_main.setContentsMargins(0,0,0,0)
         self.wallpaper = QWidget()
@@ -91,32 +97,39 @@ class Game(QWidget, ConnectionListener):
         if(self.online):
             self.returnButton = QPushButton("Powrót")
             self.returnButton.setStyleSheet("max-width: 400px;")
-            self.returnButton.clicked.connect(lambda: self.end_game.emit())
+            self.returnButton.clicked.connect(lambda: self.end_game_signal.emit())
             self.returnButton.setDisabled(True)
             self.wallpaper_layout.addWidget(self.returnButton)
         else:
             self.wallpaper_layout.addWidget(self.widgetSvg)
 
-        # Initialize chessboard object
+#======================== Initialize chessboard object =======================
         self.chessboard = chess.Board()
         self.print_board()
 
-        # Set threads and events
+#======================== Set threads and events =============================
         self.wellcome_sound_thread = Thread(
             target=self.welcome_sound, name = "Welcome")
         self.wellcome_sound_thread.daemon = True
+
         if(self.online):
             self.client_thread = Thread(target=self.client, name = "Client")
             self.client_thread.daemon = True
             self.Connect(("192.168.1.13", 5554))
             self.client_thread.start()
         else:
+            self.engine_move_event = Event()
             self.engine_move_thread = Thread(
                 target=self.engine_move, name = "Engine")
             self.engine_move_thread.daemon = True
-            self.engine_move_event = Event()
             self.engine_move_thread.start()
             self.wellcome_sound_thread.start()
+
+        self.player_command_event = Event()
+        self.player_command_thread = Thread(
+            target=self.player_command, name="Player command")
+        self.player_command_thread.daemon = True
+        self.player_command_thread.start()
 
 #======================== User interface functions ===========================
 
@@ -157,22 +170,27 @@ class Game(QWidget, ConnectionListener):
             speech.sayWords("Rozpoczynasz grę")
 
     # Get and perform player's voice command 
-    def player_action(self):
-        try:
-            data = speech.get_player_action()
-            if(data):
-                if(data["action"]=="surrender"):
-                    speech.sayWords("Koniec gry")
-                    self.end_game.emit()
-                elif(data["action"]=="checkField"):
-                    self.check_field(data["field"])
-                elif(data["action"]=="move"):
-                    self.player_move(data["move"])
-                elif(data["action"] == "error"):
-                    playsound("sound/error.mp3")
-        except Exception:
-            logging.exception("{0} function error:".format(
-                self.player_action.__name__))
+    def player_command(self):
+        while True:
+            self.player_command_event.wait()
+            if(self.threads_stop):
+                break
+            try:
+                data = speech.get_player_command()
+                if(data):
+                    if(data["action"]=="surrender"):
+                        speech.sayWords("Koniec gry")
+                        self.end_game_signal.emit()
+                    elif(data["action"]=="checkField"):
+                        self.check_field_signal.emit(data["field"])
+                    elif(data["action"]=="move"):
+                        self.player_move_signal.emit(data["move"])
+                    elif(data["action"] == "error"):
+                        playsound("sound/error.mp3")
+            except Exception:
+                logging.exception("{0} function error:".format(
+                    self.player_command.__name__))
+            self.player_command_event.clear()
 
 #======================== Game functions =====================================
 
@@ -205,8 +223,9 @@ class Game(QWidget, ConnectionListener):
                     self.push_move(move_san)
                     if self.game_continue():
                         self.engine_move_event.set()
-        except ValueError as ex:
-            speech.sayWords("Nieprawidłowy ruch")
+        except ValueError:
+
+            speech.sayWords("Nieprawidłowy ruch {0}".format(move))
         except Exception:
             logging.exception("{0} function error:".format(
                 self.player_move.__name__))
@@ -242,7 +261,7 @@ class Game(QWidget, ConnectionListener):
                     else:
                         speech.sayWords("Przeciwnik wygrywa")
                 sleep(2)
-                self.end_game.emit()
+                self.end_game_signal.emit()
                 return False
             else:
                 if(self.chessboard.is_check()):
@@ -277,7 +296,7 @@ class Game(QWidget, ConnectionListener):
                 logging.exception("{0} function error:".format(
                     self.engine_move.__name__))
                 speech.sayWords("Błąd silnika szachowego")
-                self.end_game.emit()
+                self.end_game_signal.emit()
             else:
                 self.engine_move_event.clear()
                 if self.game_continue():
@@ -291,7 +310,7 @@ class Game(QWidget, ConnectionListener):
             data = speech.get_wait_action()
             if(data):
                 if(data["action"]=="return"):
-                    self.end_game.emit()
+                    self.end_game_signal.emit()
         except Exception:
             logging.exception("{0} function error:".format(
                 self.wait_action.__name__))
@@ -307,7 +326,7 @@ class Game(QWidget, ConnectionListener):
             logging.exception("{0} function error, move = {1}".format(
                 self.wait_action.__name_, move_san))
             speech.sayWords("Błąd ruchu przeciwnika")
-            self.end_game.emit()
+            self.end_game_signal.emit()
         else:
             if self.game_continue():
                 self.player_turn = True
@@ -320,7 +339,7 @@ class Game(QWidget, ConnectionListener):
 
     def Network_disconnected(self, data):
         speech.sayWords("Błąd połączenia z serwerem")
-        self.end_game.emit()
+        self.end_game_signal.emit()
 
     def Network_error(self, data):
         logging.error("{0} function:".format(
@@ -346,12 +365,12 @@ class Game(QWidget, ConnectionListener):
 
     def Network_resignFromServer(self, data):
         speech.sayWords("Przeciwnik poddał się")
-        self.end_game.emit()
+        self.end_game_signal.emit()
 
     def Network_disconnectedFromServer(self, data):
         logging.error('Game server error: {0}'.format(data["error"]))
         speech.sayWords("Błąd serwera")
-        self.end_game.emit()
+        self.end_game_signal.emit()
 
     def send_move(self, move):
         connection.Send({"action":"move", "move":move})
@@ -375,9 +394,9 @@ class Game(QWidget, ConnectionListener):
             self.Pump()
         except Exception:
             logging.exception("Loop function error:")
-            self.end_game.emit()
+            self.end_game_signal.emit()
 
-#======================== Event and thread functions =========================
+#======================== Event and thread handlers =========================
 
     # Key press event slot
     @pyqtSlot(QWidget)
@@ -385,9 +404,9 @@ class Game(QWidget, ConnectionListener):
         if event.key() == Qt.Key_Space:
             if(self.online):
                 if self.connected:
-                    self.player_action()
+                    self.player_command_event.set()
             elif self.player_turn:
-                self.player_action()
+                self.player_command_event.set()
 
     # Delete threads 
     def delete_threads(self):
@@ -401,6 +420,5 @@ class Game(QWidget, ConnectionListener):
             self.threads_stop = True
         else:
             self.threads_stop = True
-            # if self.engine.
             self.engine.close()
             self.engine_move_event.set()
