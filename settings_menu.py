@@ -1,10 +1,9 @@
-from PyQt5 import  QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QSettings
-from PyQt5.QtWidgets import QApplication, QWidget, QAction
+from PyQt5.QtWidgets import QWidget
 
 from threading import Event, Thread
 
-from uifiles.settingsUI import Ui_Form
+from graphic.settingsUI import Ui_Form
 import speech
 
 class SettingsMenu(QWidget, Ui_Form):
@@ -13,8 +12,10 @@ class SettingsMenu(QWidget, Ui_Form):
     set_pieces_color_signal = pyqtSignal(object)
     set_pages_sound_signal = pyqtSignal(object)
     save_settings_signal = pyqtSignal()
-    block_buttons_signal = pyqtSignal(object)
+    block_action_signal = pyqtSignal(object)
+    page_communique_signal = pyqtSignal(object)
     threads_stop = False
+    action_blocked = False
 
     def __init__(self, parent):
         super(SettingsMenu, self).__init__(parent)
@@ -26,10 +27,15 @@ class SettingsMenu(QWidget, Ui_Form):
         self.set_pieces_color_signal.connect(lambda x: self.set_pieces_color(x))
         self.set_pages_sound_signal.connect(lambda x: self.set_pages_sound(x))
         self.save_settings_signal.connect(lambda: self.save_settings())
-        self.block_buttons_signal.connect(lambda x:self.block_buttons(x))
+        self.block_action_signal.connect(lambda x:self.block_action(x))
+        
+        self.pushButton_return.clicked.connect(
+            lambda: self.close_settings_menu_signal.emit())
+        self.pushButton_save.clicked.connect(lambda: self.save_settings())
 
         # Set slider value
-        self.horizontalSlider_stockfish_lvl.setValue(self.settings.value("stockfishLevel"))
+        self.horizontalSlider_stockfish_lvl.setValue(
+            self.settings.value("stockfishLevel"))
 
         # Set pieces color radioButtons
         if(self.settings.value("piecesColor") == "white"):
@@ -44,10 +50,6 @@ class SettingsMenu(QWidget, Ui_Form):
             self.radioButton_info_on.setChecked(True)
         else:
             self.radioButton_info_off.setChecked(True)
-
-        # Connect buttond to functions and signals
-        self.pushButton_return.clicked.connect(lambda: self.close_settings_menu_signal.emit())
-        self.pushButton_save.clicked.connect(lambda: self.save_settings())
 
         self.helpMessage = "Dostępne opcje to: poziom komputera od jeden do osiem. \
             Kolor figur: białe, czarne albo losowe. \
@@ -67,7 +69,7 @@ class SettingsMenu(QWidget, Ui_Form):
             if(self.threads_stop):
                 break
             try:
-                self.block_buttons_signal.emit(True)
+                self.block_action_signal.emit(True)
                 data = speech.get_settings_command()
                 if(data["action"] == "engine"):
                     self.set_engine_lvl_signal.emit(data["level"])
@@ -79,53 +81,53 @@ class SettingsMenu(QWidget, Ui_Form):
                     self.set_pages_sound_signal.emit(data["pageSound"])
 
                 elif(data["action"] == "help"):
-                    speech.sayWords(self.helpMessage)
+                    self.page_communique_signal.emit(self.helpMessage)
 
                 elif(data["action"] == "return"):
                     self.close_settings_menu_signal.emit()
 
                 elif(data["action"] == "save"):
                     self.save_settings()
-                    speech.sayWords("Zapisano ustawienia")
+                    self.page_communique_signal.emit("Zapisano ustawienia")
 
                 elif(data["action"] == "error"):
-                    speech.sayWords(data["errorMessage"])
+                    self.page_communique_signal.emit(data["errorMessage"])
 
                 elif(data["action"] == "none"):
                     pass
                 else:
-                    speech.sayWords("Brak odpowiedniej opcji")                                     
+                    self.page_communique_signal.emit("Brak odpowiedniej opcji")                                     
             except Exception as ex:
                 print("Error:", ex)
             self.settings_command_event.clear()
-            self.block_buttons_signal.emit(False)
+            self.block_action_signal.emit(False)
     
     def set_engine_lvl(self, lvl):
         self.horizontalSlider_stockfish_lvl.setValue(int(lvl))
         text = "Ustawiono poziom trudności na " + str(lvl)
         self.horizontalSlider_stockfish_lvl.update()
-        speech.sayWords(text)   
+        self.page_communique_signal.emit(text)   
 
     def set_pieces_color(self, color):
         if color == "white":
             self.radioButton_white.setChecked(True)
-            speech.sayWords("Ustawiono kolor figur na biały")
+            self.page_communique_signal.emit("Ustawiono kolor figur na biały")
         elif color == "black":
             self.radioButton_black.setChecked(True)
-            speech.sayWords("Ustawiono kolor figur na czarny")
+            self.page_communique_signal.emit("Ustawiono kolor figur na czarny")
         elif color == "random":
             self.radioButton_random.setChecked(True)
-            speech.sayWords("Ustawiono kolor figur na losowy")
+            self.page_communique_signal.emit("Ustawiono kolor figur na losowy")
 
     def set_pages_sound(self, sound):
         if sound == "on":
             self.radioButton_info_on.setChecked(True)
-            speech.sayWords("Włączono komunikaty głosowe")
+            self.page_communique_signal.emit("Włączono komunikaty głosowe")
         elif sound == "off":
             self.radioButton_info_off.setChecked(True)
-            speech.sayWords("Wyłączono komunikaty głosowe")
+            self.page_communique_signal.emit("Wyłączono komunikaty głosowe")
 
-    # Function to save settings before exit
+    # Save settings before exit settings page
     def save_settings(self):
         self.settings.setValue("stockfishLevel", self.horizontalSlider_stockfish_lvl.value())
 
@@ -141,7 +143,9 @@ class SettingsMenu(QWidget, Ui_Form):
         else:
             self.settings.setValue("pageSound", "false")
 
-    def block_buttons(self, bool):
+    def block_action(self, bool):
+        self.action_blocked = bool
+
         self.radioButton_info_on.setDisabled(bool)
         self.radioButton_info_off.setDisabled(bool)
 
@@ -157,6 +161,20 @@ class SettingsMenu(QWidget, Ui_Form):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Space:
             self.settings_command_event.set()
+
+    @pyqtSlot(QWidget)
+    def showEvent(self,event):
+        if(self.settings.value("pageSound") == "true"):
+            self.page_communique_text = "Ustawienia"
+            if(self.settings.value("firstSettingsMenu", "true") == "true"):
+                self.page_communique_text = "\
+                    Dostępne opcje to: poziom komputera od jeden do osiem. \
+                    Kolor figur: białe, czarne albo losowe. \
+                    Dźwięk aktywnego mikrofonu: włączony albo wyłączony. \
+                    Oraz komunikaty głosowe: włączone lub wyłączone. \
+                    Zapisz aby zapisać zmiany. Powrót aby wrócić do menu"
+                self.settings.setValue("firstSettingsMenu", "false")
+            self.page_communique_signal.emit(self.page_communique_text)
 
     def delete_threads(self):
         self.threads_stop = True

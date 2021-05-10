@@ -1,9 +1,11 @@
 
 stockfish_20011801_x64.exe
-uifiles/__pycache__/*
-.vscode/settings.json
+graphic/__pycache__/*
+.vscode
 *.pyc
 .vscode
 build
 dist
 *.spec
+*.log
+.pylintrc

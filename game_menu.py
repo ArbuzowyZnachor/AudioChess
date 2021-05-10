@@ -3,7 +3,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QSettings
 from PyQt5.QtWidgets import QWidget
 from threading import Event, Thread
 
-from uifiles.gameUI import Ui_gameMenu
+from graphic.gameUI import Ui_gameMenu
 import speech
 
 class GameMenu(QWidget, Ui_gameMenu):

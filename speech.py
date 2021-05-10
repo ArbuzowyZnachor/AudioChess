@@ -8,7 +8,10 @@ import logging
 
 # Listen microphone input and return as a text
 def listen():
-    playsound("sound/mic.mp3")
+    try:
+        playsound("sound/mic.mp3")
+    except Exception as ex:
+            logging.exception("listen function failed:", ex)
     recognizer = sr.Recognizer()
     text = ""
     with sr.Microphone() as source:
@@ -16,8 +19,8 @@ def listen():
             audio = recognizer.listen(source, 2, 4)
             text = recognizer.recognize_google(audio, language="pl")
         except Exception as ex:
-            playsound("sound/error.mp3")
             logging.exception("listen function failed:", ex)
+            playsound("sound/error.mp3")
         else:
             if text == "":
                 playsound("sound/error.mp3")
@@ -57,11 +60,11 @@ move_dict = {
     "=R": "promocja do wieży",
     "=B": "promocja do gońca",
     "=N": "promocja do skoczka",
-    "K": "król, ",
-    "Q": "hetman, ",
-    "B": "goniec, ",
-    "N": "skoczek, ",
-    "R": "wieża, ",
+    "K": "król ",
+    "Q": "hetman ",
+    "B": "goniec ",
+    "N": "skoczek ",
+    "R": "wieża ",
     "O-O-O": "długaroszada " ,
     "O-O": "krótkaroszada ",
     "x": "bije ",
@@ -88,14 +91,16 @@ def get_main_menu_command():
             data["action"] = "play"
         elif(re.search("(ustawienia|opcje)", text)):
             data["action"] = "settings"
-        elif(re.search("(wyjś|zakończ|zamknij|wyjdź|powrót|wróc|program)", text)):
+        elif(re.search("(wyjśc|wejśc|zakończ|zamknij|wyjdź\
+            |powrót|wróc|program)", text)):
             data["action"] = "exit"  
         elif(re.search("(pomoc|instrukcj|corobić|pomóż)", text)):
             data["action"] = "help"
-            data["helpMessage"] = "Dostępne komendy to: rozpocznij grę, ustawienia oraz wyjście"
+            data["helpMessage"] = "Dostępne komendy to: rozpocznij grę,\
+                 ustawienia oraz wyjście"
         else:
             data["action"] = "error"
-            data["errorMessage"] = "Nieprawidłowa opcja"
+            data["errorMessage"] = "Nieprawidłowa opcja " + text
     else:
         data["action"] = "none"
     return data
@@ -259,10 +264,10 @@ def sayWords(text):
     converter.setProperty('rate', 140) 
     converter.setProperty('volume', 0.8)
     converter.say(text)
-    # try:
-    converter.runAndWait() 
-    # except Exception as ex:
-    #     print("Error: ", ex)
+    try:
+        converter.runAndWait() 
+    except Exception:
+        logging.exception("{0} function error:".format(sayWords.__name__))
 
 def sayPiece(field, color, type):
     text = field

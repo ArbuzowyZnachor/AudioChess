@@ -31,11 +31,16 @@ class Game(QWidget, ConnectionListener):
     check_field_signal = pyqtSignal(object)
     player_move_signal = pyqtSignal(object)
 
+    block_action_signal = pyqtSignal(object)
+    page_communique_signal = pyqtSignal(object)
+
     threads_stop = False
+    action_blocked = False
     engine = None
-    gameActive = False
+    online_game_active = False
     connected = False
     engine_level = 4
+    page_communique_text = ""
 
 #======================== Init function ======================================
     def __init__(self, online):
@@ -43,6 +48,7 @@ class Game(QWidget, ConnectionListener):
         self.online = online
         self.check_field_signal.connect(lambda x: self.check_field(x))
         self.player_move_signal.connect(lambda x: self.player_move(x))
+        self.block_action_signal.connect(lambda x:self.block_action(x))
 
 
         self.settings = QSettings('UKW', 'AudioChess')
@@ -108,14 +114,11 @@ class Game(QWidget, ConnectionListener):
         self.print_board()
 
 #======================== Set threads and events =============================
-        self.wellcome_sound_thread = Thread(
-            target=self.welcome_sound, name = "Welcome")
-        self.wellcome_sound_thread.daemon = True
 
         if(self.online):
             self.client_thread = Thread(target=self.client, name = "Client")
             self.client_thread.daemon = True
-            self.Connect(("192.168.1.13", 5554))
+            self.Connect(("localhost", 5554))
             self.client_thread.start()
         else:
             self.engine_move_event = Event()
@@ -123,7 +126,7 @@ class Game(QWidget, ConnectionListener):
                 target=self.engine_move, name = "Engine")
             self.engine_move_thread.daemon = True
             self.engine_move_thread.start()
-            self.wellcome_sound_thread.start()
+            # self.wellcome_sound_thread.start()
 
         self.player_command_event = Event()
         self.player_command_thread = Thread(
@@ -153,22 +156,6 @@ class Game(QWidget, ConnectionListener):
         self.widgetSvg.load(self.chessboardSvg)
         self.widgetSvg.repaint_signal.emit()
     
-    # Play initial game info (Used in wellcome_sound_thread)
-    def welcome_sound(self):
-        if(self.settings.value("firstGame", "true") == "true"):
-                self.page_sound_text = "Witaj w grze. Aby wykonać ruch \
-                    naciśnij spacje i podaj ruch w notacji SAN.\
-                    Aby się poddać podaj komendę poddaj się.\
-                    Aby sprawdzić zawartość pola na szachownicy,\
-                    podaj komendę pole, a następnie nazwę pola na przykład b7"
-                speech.sayWords(self.page_sound_text)
-                self.settings.setValue("firstGame", "false")
-        if(not self.player_turn):
-            speech.sayWords("Grę zaczyna przeciwnik")
-            self.engine_move_event.set()
-        else:
-            speech.sayWords("Rozpoczynasz grę")
-
     # Get and perform player's voice command 
     def player_command(self):
         while True:
@@ -224,8 +211,8 @@ class Game(QWidget, ConnectionListener):
                     if self.game_continue():
                         self.engine_move_event.set()
         except ValueError:
-
-            speech.sayWords("Nieprawidłowy ruch {0}".format(move))
+            move = speech.replacer(move, speech.move_dict)
+            speech.sayWords("{0} to nieprawidłowy ruch".format(move))
         except Exception:
             logging.exception("{0} function error:".format(
                 self.player_move.__name__))
@@ -338,7 +325,7 @@ class Game(QWidget, ConnectionListener):
         self.returnButton.setDisabled(False)
 
     def Network_disconnected(self, data):
-        speech.sayWords("Błąd połączenia z serwerem")
+        self.page_communique_signal.emit("Błąd połączenia z serwerem")
         self.end_game_signal.emit()
 
     def Network_error(self, data):
@@ -354,8 +341,9 @@ class Game(QWidget, ConnectionListener):
             self.player_colour = 1
 
         self.player_turn = bool(self.player_colour)
-        self.gameActive = True
-        speech.sayWords("Znaleziono grę")
+        self.online_game_active = True
+        # speech.sayWords("Znaleziono grę")
+        self.page_communique_signal.emit("Znaleziono grę")
         self.wallpaper_layout.removeWidget(self.returnButton)
         self.wallpaper_layout.addWidget(self.widgetSvg)
         self.print_board()
@@ -402,17 +390,42 @@ class Game(QWidget, ConnectionListener):
     @pyqtSlot(QWidget)
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Space:
-            if(self.online):
-                if self.connected:
+            if not self.action_blocked:
+                if(self.online):
+                    if self.connected:
+                        self.player_command_event.set()
+                elif self.player_turn:
                     self.player_command_event.set()
-            elif self.player_turn:
-                self.player_command_event.set()
+
+    def block_action(self, bool):
+        self.action_blocked = bool
+        if not self.online:
+            if not (bool or self.player_turn):
+                self.engine_move_event.set() 
+
+    def showEvent(self, event):
+        # Play initial game info (Used in wellcome_sound_thread)
+        if(self.settings.value("firstGame", "true") == "true"):
+                self.page_communique_text = "Witaj w grze. Aby wykonać ruch \
+                    naciśnij spacje i podaj ruch w notacji szachowej.\
+                    Aby się poddać podaj komendę poddaj się.\
+                    Aby sprawdzić zawartość pola na szachownicy,\
+                    podaj komendę pole, a następnie nazwę pola na przykład b7"
+                self.settings.setValue("firstGame", "false")
+        if(not self.player_turn):
+            self.page_communique_text += "Grę zaczyna przeciwnik"
+            
+        else:
+            self.page_communique_text += "Rozpoczynasz grę"
+        self.page_communique_signal.emit(self.page_communique_text)
+        
+    
 
     # Delete threads 
     def delete_threads(self):
         if(self.online):
             if(self.connected):
-                if(self.gameActive ):
+                if(self.online_game_active):
                     self.send_resign()
                 else:
                     self.send_disconnect()
